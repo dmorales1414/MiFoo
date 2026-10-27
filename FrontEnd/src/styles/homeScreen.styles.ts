@@ -8,6 +8,14 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  offlineBanner: {
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    borderRadius: 12,
+    backgroundColor: '#FEF3C7',
+  },
+  offlineText: { fontSize: 12, lineHeight: 17, color: '#92400E' },
   sections: {
     paddingHorizontal: spacing.xl,
     marginTop: spacing.xl,
