@@ -34,7 +34,19 @@
           "imageWidth": 76
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker",
+      "expo-mlkit-ocr",
+      "expo-build-properties",
+      [
+        "expo-camera",
+        { "cameraPermission": "MiFoo uses the camera to scan barcodes and expiration dates.", "recordAudioAndroid": false }
+      ],
+        "expo-mlkit-ocr"
+      // [
+      //   "expo-build-properties", 
+      //   { "ios": { "deploymentTarget": "16.0" } }
+      // ]
     ],
     "experiments": {
       "typedRoutes": true,

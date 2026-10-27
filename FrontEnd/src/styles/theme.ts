@@ -20,6 +20,17 @@ export const colors = {
   overlay: 'rgba(0, 0, 0, 0.12)',
   popoverIconBackground: '#E0E7FF',
   placeholderImage: '#D1D5DB',
+  // Added for the add-item flow:
+  primarySoft: '#EEF4FF', // light blue info cards
+  primaryBorder: '#C7D8FB',
+  primaryMuted: '#C9D9F8', // unfilled step-progress segments
+  primaryDisabled: '#9DB8F0', // primary button while disabled
+  field: '#F3F4F6', // input background
+  border: '#E5E7EB',
+  success: '#16A34A',
+  successSoft: '#DCFCE7',
+  scannerBackground: '#0B0F19',
+  textPlaceholder: '#9CA3AF',
 } as const;
 
 // One entry per expiry status. Borders, badge fills and badge text all come from here,

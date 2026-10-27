@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddItemFab } from '../components/AddItemFab';
@@ -7,10 +8,11 @@ import { BottomNavBar } from '../components/BottomNavBar';
 import { ItemSection } from '../components/ItemSection';
 import { RecommendedMealCarousel } from '../components/RecommendedMealCarousel';
 import { RemoveSelectedButton } from '../components/RemoveSelectedButton';
-import { sampleItems, sampleMeals } from '../data/sampleData';
+import { sampleMeals } from '../data/sampleData';
+import { useItems } from '../hooks/useItems';
 import { styles } from '../styles/homeScreen.styles';
 import { layout, spacing } from '../styles/theme';
-import type { Item, ItemCategory } from '../types/item';
+import type { ItemCategory } from '../types/item';
 
 // The Home screen. It owns all the state and passes it down to the components:
 //   Frame 1 (default)      -> nothing open, nothing selected
@@ -19,8 +21,14 @@ import type { Item, ItemCategory } from '../types/item';
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
-  // Temporary: replace with data from your FastAPI backend later.
-  const [items, setItems] = useState<Item[]>(sampleItems);
+  // Items come from the FastAPI backend (falls back to sample data if it is unreachable).
+  const { items, offlineReason, refresh, removeItems } = useItems();
+  // Reload every time Home is shown, so an item added on the add-item screens appears.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   // Which section is in manage mode (null = none). Only one at a time, like the mockup.
@@ -49,13 +57,9 @@ export default function HomeScreen() {
   };
 
   const handleRemoveSelected = () => {
-    setItems((current) => current.filter((item) => !selectedIds.includes(item.id)));
+    removeItems(selectedIds);
     setSelectedIds([]);
     setManagingCategory(null);
-  };
-
-  const handleAddItem = () => {
-    // TODO: navigate to the "Add item" screen (scanner + manual entry) once it exists.
   };
 
   const isManaging = managingCategory !== null;
@@ -70,6 +74,14 @@ export default function HomeScreen() {
         }}
       >
         <RecommendedMealCarousel meals={sampleMeals} />
+
+        {offlineReason && (
+          <View style={[styles.offlineBanner, { marginTop: spacing.lg }]}>
+            <Text style={styles.offlineText}>
+              Can't reach the server, so you're seeing sample data. {offlineReason}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.sections}>
           <ItemSection
@@ -104,7 +116,8 @@ export default function HomeScreen() {
           isMenuOpen={isMenuOpen}
           onToggleMenu={() => setIsMenuOpen((open) => !open)}
           onCloseMenu={() => setIsMenuOpen(false)}
-          onAddItem={handleAddItem}
+          onScanBarcode={() => router.push('/add/scan-barcode')}
+          onEnterManually={() => router.push('/add/manual')}
         />
       )}
 

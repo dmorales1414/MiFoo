@@ -20,6 +20,8 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         {/* "index" is the route for "/", the first screen the app opens. */}
         <Stack.Screen name="index" />
+        {/* The add-item flow (scan barcode -> confirm -> scan date -> review, or manual). */}
+        <Stack.Screen name="add" options={{ animation: 'slide_from_bottom' }} />
         {/* Placeholder: shows a header so there is a back button while you test. */}
         <Stack.Screen name="explore" options={{ headerShown: true, title: 'Explore' }} />
       </Stack>

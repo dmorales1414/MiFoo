@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { styles } from '../styles/itemRow.styles';
 import { colors, statusColors } from '../styles/theme';
 import type { Item } from '../types/item';
-import { daysUntil, formatDate, formatDaysLeft, getExpiryStatus } from '../utils/expiry';
+import { getItemDisplay } from '../utils/expiry';
 import { StatusBadge } from './StatusBadge';
 
 interface ItemRowProps {
@@ -16,13 +16,9 @@ interface ItemRowProps {
 
 // One food item: icon (or checkbox in manage mode), name, date line, status badge.
 export function ItemRow({ item, selectable, selected, onPress }: ItemRowProps) {
-  const daysLeft = daysUntil(item.expirationDate);
-  const status = getExpiryStatus(daysLeft);
-
-  // NOTE: the Figma mockup shows an expiration date for produce too, but the proposal
-  // says produce is tracked by "time stored". When you implement that, change only
-  // this line (e.g. use item.dateAdded for produce).
-  const subtitle = `${formatDate(item.expirationDate)} • ${formatDaysLeft(daysLeft)}`;
+  // Packaged items go by their expiration date. Produce without a date goes by days stored
+  // (see getItemDisplay in utils/expiry.ts).
+  const { status, subtitle } = getItemDisplay(item);
 
   const iconName = item.category === 'produce' ? 'leaf-outline' : 'restaurant-outline';
 
@@ -50,7 +46,7 @@ export function ItemRow({ item, selectable, selected, onPress }: ItemRowProps) {
           {item.itemName}
         </Text>
         <View style={styles.metaRow}>
-          <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+          <Ionicons name={item.expirationDate ? 'calendar-outline' : 'time-outline'} size={14} color={colors.textSecondary} />
           <Text style={styles.metaText} numberOfLines={1}>
             {subtitle}
           </Text>
