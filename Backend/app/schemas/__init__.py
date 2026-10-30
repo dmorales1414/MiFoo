@@ -1,5 +1,6 @@
 from app.schemas.item import Item, ItemCategory, ItemCreate, ItemUpdate
-from app.schemas.profile import Profile, ProfileUpdate
+from app.schemas.auth import AuthResult, LoginRequest, RefreshRequest, SessionOut, SignUpRequest
+from app.schemas.profile import Me, MeUpdate, Profile, ProfileUpdate
 from app.schemas.recipe import (
     Recipe,
     RecipeCreate,
@@ -11,6 +12,7 @@ from app.schemas.user import User
 __all__ = [
     "Item", "ItemCategory", "ItemCreate", "ItemUpdate",
     "Recipe", "RecipeCreate", "RecipeIngredient", "RecipeIngredientCreate",
-    "Profile", "ProfileUpdate",
+    "Profile", "ProfileUpdate", "Me", "MeUpdate",
+    "AuthResult", "LoginRequest", "RefreshRequest", "SessionOut", "SignUpRequest",
     "User",
 ]

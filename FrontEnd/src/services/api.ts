@@ -1,6 +1,8 @@
+import type { AuthResult, Me, MeUpdate, Session, SignUpInput } from '../types/auth';
 import type { Item, NewItem } from '../types/item';
 import type { ProductSuggestion } from '../types/product';
 import { API_URL, REQUEST_TIMEOUT_MS } from './config';
+import { clearSession, getAccessToken, hasSession, refreshSession, setRefresher } from './session';
 
 // Thrown for every failed request. `status` is the HTTP code, or 0 when the server
 // could not be reached at all (wrong address, backend not running, no network).
@@ -23,21 +25,42 @@ function detailToMessage(body: unknown, fallback: string): string {
   return fallback;
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+interface RequestOptions {
+  auth?: boolean; // send the login token (default true). Login/sign-up/refresh turn it off.
+}
+
+async function send(path: string, init: RequestInit | undefined, token: string | null): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-  let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    return await fetch(`${API_URL}${path}`, {
       ...init,
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init?.headers,
+      },
     });
   } catch {
     throw new ApiError(0, `Could not reach the server at ${API_URL}. Is the backend running?`);
   } finally {
     clearTimeout(timer);
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit, { auth = true }: RequestOptions = {}): Promise<T> {
+  let response = await send(path, init, auth ? await getAccessToken() : null);
+
+  // The token may have just expired: refresh once and retry.
+  if (auth && response.status === 401 && hasSession()) {
+    const next = await refreshSession();
+    if (next) {
+      response = await send(path, init, next.accessToken);
+    } else if (!hasSession()) {
+      throw new ApiError(401, 'Your login has expired. Please log in again.');
+    }
+    if (response.status === 401) await clearSession();
   }
 
   if (response.status === 204) return undefined as T;
@@ -52,6 +75,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError(response.status, detailToMessage(body, `Server error (${response.status}).`));
   }
   return body as T;
+}
+
+// ---- Accounts ---------------------------------------------------------------------------
+const post = (body: unknown): RequestInit => ({ method: 'POST', body: JSON.stringify(body) });
+
+export function signUp(input: SignUpInput): Promise<AuthResult> {
+  return request<AuthResult>('/auth/signup', post(input), { auth: false });
+}
+
+// `identifier` is a username or an email address.
+export function logIn(identifier: string, password: string): Promise<Session> {
+  return request<Session>('/auth/login', post({ identifier, password }), { auth: false });
+}
+
+setRefresher((refreshToken) =>
+  request<Session>('/auth/refresh', post({ refreshToken }), { auth: false }),
+);
+
+export function fetchMe(): Promise<Me> {
+  return request<Me>('/me');
+}
+
+export function updateMe(changes: MeUpdate): Promise<Me> {
+  return request<Me>('/me', { method: 'PATCH', body: JSON.stringify(changes) });
 }
 
 // ---- Products (Open Food Facts, through our backend) ----------------------------------

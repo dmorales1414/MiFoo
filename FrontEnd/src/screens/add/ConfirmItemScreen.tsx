@@ -5,7 +5,7 @@ import { Image, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddItemHeader } from '../../components/add/AddItemHeader';
-import { PrimaryButton, TextLink } from '../../components/add/Buttons';
+import { PrimaryButton, TextLink } from '../../components/Buttons';
 import { InfoCard } from '../../components/add/InfoCard';
 import { StepIntro } from '../../components/add/StepIntro';
 import { useAddItem } from '../../features/addItem/AddItemContext';

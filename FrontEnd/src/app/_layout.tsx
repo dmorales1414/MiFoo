@@ -1,30 +1,53 @@
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
-// Makes sure that if the app is ever opened straight onto another screen
-// (for example through a deep link to /explore), "index" (HomeScreen) sits
-// underneath it, so going back lands on Home instead of closing the app.
+import { AuthProvider, useAuth } from '../features/auth/AuthContext';
+
+// Keep the splash screen up until we know whether someone is logged in,
+// so a logged-in user never sees a flash of the Login screen.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// If the app is ever opened straight onto another screen, "index" (Home) sits underneath it.
 export const unstable_settings = {
   initialRouteName: 'index',
 };
 
-// The root layout wraps every screen in the app. For now it is a simple Stack
-// (screens that push on top of each other). When you build the Meals, Pantry and
-// Profile screens, this is the file you will change to add a tab bar.
+function Routes() {
+  const { ready, signedIn } = useAuth();
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
+
+  if (!ready) return null;
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      {/* Only reachable when logged in. Logging out removes them and expo-router
+          sends the user to the first available screen (Login). */}
+      <Stack.Protected guard={signedIn}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="profile" options={{ animation: 'none' }} />
+        <Stack.Screen name="add" options={{ animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="explore" options={{ headerShown: true, title: 'Explore' }} />
+      </Stack.Protected>
+
+      {/* Only reachable when logged out. */}
+      <Stack.Protected guard={!signedIn}>
+        <Stack.Screen name="login" />
+        <Stack.Screen name="signup" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
 export default function RootLayout() {
   return (
-    <>
-      {/* Dark icons (clock, battery) because the screens have a white background. */}
+    <AuthProvider>
       <StatusBar style="dark" />
-
-      <Stack screenOptions={{ headerShown: false }}>
-        {/* "index" is the route for "/", the first screen the app opens. */}
-        <Stack.Screen name="index" />
-        {/* The add-item flow (scan barcode -> confirm -> scan date -> review, or manual). */}
-        <Stack.Screen name="add" options={{ animation: 'slide_from_bottom' }} />
-        {/* Placeholder: shows a header so there is a back button while you test. */}
-        <Stack.Screen name="explore" options={{ headerShown: true, title: 'Explore' }} />
-      </Stack>
-    </>
+      <Routes />
+    </AuthProvider>
   );
 }

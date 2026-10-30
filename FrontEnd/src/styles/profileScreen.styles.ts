@@ -1,0 +1,48 @@
+import { StyleSheet } from 'react-native';
+import { colors, radii, spacing } from './theme';
+
+export const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
+  headerTitle: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
+  content: { paddingHorizontal: spacing.xl, gap: spacing.xl, alignItems: 'stretch' },
+  hero: { alignItems: 'center', gap: 6, paddingTop: spacing.md },
+  avatar: { width: 112, height: 112, borderRadius: 56, backgroundColor: colors.placeholderImage },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary },
+  avatarInitials: { fontSize: 40, fontWeight: '800', color: colors.onPrimary },
+  name: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, textAlign: 'center' },
+  joined: { fontSize: 14, color: colors.textSecondary },
+  card: { backgroundColor: colors.card, borderRadius: radii.lg, padding: spacing.lg, gap: spacing.md },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  cardTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  editButton: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 4 },
+  editLabel: { fontSize: 14, fontWeight: '600', color: colors.primary },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  rowIcon: { width: 24, alignItems: 'center' },
+  rowText: { flex: 1, gap: 1 },
+  rowLabel: { fontSize: 12, color: colors.textSecondary },
+  rowValue: { fontSize: 16, color: colors.textPrimary },
+  rowEmpty: { fontSize: 16, color: colors.textPlaceholder },
+  logout: {
+    height: 56,
+    borderRadius: radii.pill,
+    backgroundColor: colors.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  logoutLabel: { fontSize: 16, fontWeight: '700', color: colors.onDanger },
+  notice: { fontSize: 13, color: '#B45309', textAlign: 'center' },
+  // Edit sheet
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
+    padding: spacing.xxl,
+    gap: spacing.lg,
+  },
+  sheetTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
+  sheetButtons: { gap: spacing.sm, marginTop: spacing.sm },
+});

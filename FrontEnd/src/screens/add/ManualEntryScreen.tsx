@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddItemHeader } from '../../components/add/AddItemHeader';
-import { PrimaryButton } from '../../components/add/Buttons';
+import { PrimaryButton } from '../../components/Buttons';
 import {
   CATEGORY_LABELS,
   CategoryToggle,

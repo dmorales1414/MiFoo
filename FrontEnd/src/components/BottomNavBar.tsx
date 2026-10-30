@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
+import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { styles } from '../styles/bottomNavBar.styles';
@@ -22,9 +23,23 @@ interface BottomNavBarProps {
   onTabPress?: (tab: TabKey) => void;
 }
 
-// Visual-only for now. Once you add more screens, connect it to expo-router
-// (see the notes in the chat) so pressing a tab actually navigates.
+// Where each tab goes. Meals and Pantry have no screens yet, so they do nothing for now:
+// add their route here when you build them (for example meals: '/meals').
+const TAB_ROUTES: Partial<Record<TabKey, '/' | '/profile'>> = {
+  home: '/',
+  profile: '/profile',
+};
+
 export function BottomNavBar({ activeTab, bottomOffset, onTabPress }: BottomNavBarProps) {
+  const router = useRouter();
+
+  function handlePress(tab: TabKey) {
+    onTabPress?.(tab);
+    const route = TAB_ROUTES[tab];
+    // replace (not push) so switching tabs does not pile up a back-button history.
+    if (route && tab !== activeTab) router.replace(route);
+  }
+
   return (
     <View style={[styles.bar, { bottom: bottomOffset }]}>
       {TABS.map((tab) => {
@@ -32,7 +47,7 @@ export function BottomNavBar({ activeTab, bottomOffset, onTabPress }: BottomNavB
         return (
           <Pressable
             key={tab.key}
-            onPress={() => onTabPress?.(tab.key)}
+            onPress={() => handlePress(tab.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
             accessibilityLabel={tab.label}

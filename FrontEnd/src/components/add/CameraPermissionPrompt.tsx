@@ -3,7 +3,7 @@ import type { PermissionResponse } from 'expo-camera';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { spacing } from '../../styles/theme';
-import { PrimaryButton } from './Buttons';
+import { PrimaryButton } from '../Buttons';
 
 interface Props {
   permission: PermissionResponse | null;

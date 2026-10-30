@@ -4,4 +4,6 @@ venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+requirements-scanner.txt
 test_images/
+sql/

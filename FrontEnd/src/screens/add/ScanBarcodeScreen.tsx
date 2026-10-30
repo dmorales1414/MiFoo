@@ -5,7 +5,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddItemHeader } from '../../components/add/AddItemHeader';
-import { TextLink } from '../../components/add/Buttons';
+import { TextLink } from '../../components/Buttons';
 import { CameraPermissionPrompt } from '../../components/add/CameraPermissionPrompt';
 import { InfoCard } from '../../components/add/InfoCard';
 import { ScannerViewport } from '../../components/add/ScannerViewport';

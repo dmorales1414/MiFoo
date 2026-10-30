@@ -6,7 +6,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddItemHeader } from '../../components/add/AddItemHeader';
-import { PrimaryButton, TextLink } from '../../components/add/Buttons';
+import { PrimaryButton, TextLink } from '../../components/Buttons';
 import { CameraPermissionPrompt } from '../../components/add/CameraPermissionPrompt';
 import { ScannerViewport } from '../../components/add/ScannerViewport';
 import { StepIntro } from '../../components/add/StepIntro';
@@ -17,7 +17,7 @@ import { colors, spacing } from '../../styles/theme';
 import { formatLongDate } from '../../utils/expiry';
 import { parseExpirationDate } from '../../utils/parseExpirationDate';
 
-const FRAME_PAUSE_MS = 700; // wait between pictures so the phone is not working non-stop
+const FRAME_PAUSE_MS = 1000; // wait between pictures so the phone is not working non-stop
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 // Step 2 of 3 (Figma: "Scan expiration date"). Takes a picture about once a second, reads
@@ -101,7 +101,7 @@ export default function ScanDateScreen() {
           guide="date"
           statusLabel={statusLabel}
           statusTone={detected ? 'success' : 'searching'}
-          torchOn={torchOn}
+          torchOn={torchOn} // Flashlight
           onToggleTorch={() => setTorchOn((on) => !on)}
         >
           {granted ? (
@@ -111,6 +111,9 @@ export default function ScanDateScreen() {
                 style={StyleSheet.absoluteFill}
                 facing="back"
                 enableTorch={torchOn}
+                // Each takePictureAsync() flashes the screen like a camera shutter. Because we
+                // take a picture every second to read the date, that looked like flickering.
+                animateShutter={false}
                 onCameraReady={() => setCameraReady(true)}
               />
             )

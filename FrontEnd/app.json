@@ -40,13 +40,13 @@
       "expo-build-properties",
       [
         "expo-camera",
-        { "cameraPermission": "MiFoo uses the camera to scan barcodes and expiration dates.", "recordAudioAndroid": false }
+        {
+          "cameraPermission": "MiFoo uses the camera to scan barcodes and expiration dates.",
+          "recordAudioAndroid": false
+        }
       ],
-        "expo-mlkit-ocr"
-      // [
-      //   "expo-build-properties", 
-      //   { "ios": { "deploymentTarget": "16.0" } }
-      // ]
+      "expo-mlkit-ocr",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

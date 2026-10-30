@@ -1,0 +1,43 @@
+import { StyleSheet } from 'react-native';
+import { colors, radii, spacing } from '../theme';
+
+export const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  scroll: { flexGrow: 1, paddingHorizontal: spacing.xxl, justifyContent: 'center', gap: spacing.xl },
+  logoWrap: { alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },
+  logoCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: { fontSize: 28, fontWeight: '800', color: colors.textPrimary },
+  subtitle: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
+  form: { gap: spacing.lg },
+  field: { gap: 6 },
+  label: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  input: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 54,
+    borderRadius: radii.md,
+    backgroundColor: colors.field,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+  },
+  inputError: { borderColor: colors.danger },
+  inputText: { flex: 1, fontSize: 16, color: colors.textPrimary },
+  fieldError: { fontSize: 12, color: colors.danger },
+  hint: { fontSize: 12, color: colors.textSecondary },
+  banner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: '#FEE2E2' },
+  bannerText: { fontSize: 14, color: '#B91C1C' },
+  infoBanner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: colors.successSoft },
+  infoBannerText: { fontSize: 14, color: '#15803D' },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
+  switchText: { fontSize: 14, color: colors.textSecondary },
+  switchLink: { fontSize: 14, fontWeight: '700', color: colors.primary },
+});

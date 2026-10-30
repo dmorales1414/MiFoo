@@ -221,16 +221,17 @@ npx expo start -c        # -c clears Metro's cache
 **One-time setup for the add-item screens** (they use native code, so the app must be **rebuilt** once):
 
 ```powershell
-npx expo install expo-camera @react-native-community/datetimepicker expo-mlkit-ocr expo-build-properties
+npx expo install expo-camera @react-native-community/datetimepicker expo-mlkit-ocr
 ```
 
 Then add these to the `plugins` list in `app.json` (keep the plugins already there):
 
 ```json
 ["expo-camera", { "cameraPermission": "MiFoo uses the camera to scan barcodes and expiration dates.", "recordAudioAndroid": false }],
-"expo-mlkit-ocr",
-["expo-build-properties", { "ios": { "deploymentTarget": "16.0" } }]
+"expo-mlkit-ocr"
 ```
+
+Building only for Android, so no `expo-build-properties` plugin is needed. (If you ever build for iPhone, add `["expo-build-properties", { "ios": { "deploymentTarget": "16.4" } }]`. Expo SDK 57 rejects anything lower, even on Android builds, with "`ios.deploymentTarget` needs to be at least version 16.4".)
 
 Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` (see "Connecting to the backend" below). Rebuild and start:
 
@@ -322,3 +323,35 @@ These folders are part of the architecture but **do not exist yet**. Do not assu
 | What the add-item screens say | The matching file in `src/screens/add/` |
 | Which dates the scanner understands | `src/utils/parseExpirationDate.ts` |
 | Produce "stored N days" cutoffs | `PRODUCE_USE_SOON_AFTER_DAYS` / `PRODUCE_URGENT_AFTER_DAYS` in `src/utils/expiry.ts` |
+
+---
+
+## 9. Accounts and login (added Oct 28)
+
+**Flow:** Login / Sign Up screens -> `AuthContext` -> `services/api.ts` -> backend `/auth/*` -> Supabase Auth.
+The app never talks to Supabase directly and holds no Supabase key.
+
+| File | Job |
+|---|---|
+| `src/app/login.tsx`, `signup.tsx`, `profile.tsx` | Routes (re-export the screens) |
+| `src/screens/auth/LoginScreen.tsx`, `SignUpScreen.tsx`, `src/screens/ProfileScreen.tsx` | The three Figma screens (Sign Up has an extra **Your Name** field = the big name on Profile) |
+| `src/features/auth/AuthContext.tsx` | `useAuth()`: `signedIn`, `me`, `logIn`, `signUp`, `logOut`, `updateMe` |
+| `src/features/auth/validation.ts` | Field rules (mirror the backend's) |
+| `src/services/session.ts` | Holds the tokens, refreshes them before they expire (one refresh at a time) |
+| `src/services/tokenStorage.ts` | Saves tokens in `expo-secure-store`; falls back to memory if that native module is not in the build yet |
+| `src/services/api.ts` | Adds `Authorization: Bearer ...` to every call, retries once after a 401 using the refresh token |
+| `src/components/auth/AuthTextField.tsx` | Labeled input (+ show/hide password) |
+| `src/components/Buttons.tsx` | `PrimaryButton`, `TextLink` (moved here from `components/add/`) |
+
+**Route guard:** `src/app/_layout.tsx` uses `<Stack.Protected guard={signedIn}>`. Logged out you can only reach
+`/login` and `/signup`; logging in/out switches screens automatically, no `router.push` needed.
+The splash screen stays up until the saved login is checked.
+
+**Bottom nav:** Home and Profile now navigate (`router.replace`). Meals/Pantry still do nothing; add them to `TAB_ROUTES` in `BottomNavBar.tsx`.
+
+**New native module:** `expo-secure-store` (and `expo-splash-screen`, already part of Expo). Run
+`npx expo install expo-secure-store expo-splash-screen`, then add `"expo-secure-store"` to `plugins` in `app.json`,
+then make one more EAS build. Until then the app still works, but you must log in again every time you fully close it.
+
+**Scanner flashing:** every `takePictureAsync` plays a shutter flash. `ScanDateScreen` now sets `animateShutter={false}`
+and waits 1 s between pictures. JS-only change, so it shows up on the next reload.
