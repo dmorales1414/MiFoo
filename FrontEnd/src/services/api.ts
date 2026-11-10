@@ -1,5 +1,12 @@
 import type { AuthResult, Me, MeUpdate, Session, SignUpInput } from '../types/auth';
 import type { Item, NewItem } from '../types/item';
+import type {
+  CookResult,
+  IngredientSuggestion,
+  Recipe,
+  RecipeInput,
+  RecipeSummary,
+} from '../types/recipe';
 import type { ProductSuggestion } from '../types/product';
 import { API_URL, REQUEST_TIMEOUT_MS } from './config';
 import { clearSession, getAccessToken, hasSession, refreshSession, setRefresher } from './session';
@@ -118,4 +125,48 @@ export function createItem(item: NewItem): Promise<Item> {
 
 export function deleteItem(id: string): Promise<void> {
   return request<void>(`/items/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+// ---- Meals (recipes) --------------------------------------------------------------------
+export function fetchRecipes(): Promise<RecipeSummary[]> {
+  return request<RecipeSummary[]>('/recipes');
+}
+
+export function fetchRecipe(id: string): Promise<Recipe> {
+  return request<Recipe>(`/recipes/${encodeURIComponent(id)}`);
+}
+
+export function createRecipe(input: RecipeInput): Promise<Recipe> {
+  return request<Recipe>('/recipes', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function updateRecipe(id: string, input: RecipeInput): Promise<Recipe> {
+  return request<Recipe>(`/recipes/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
+export function deleteRecipe(id: string): Promise<void> {
+  return request<void>(`/recipes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export function uploadRecipePhoto(id: string, imageBase64: string, contentType: string): Promise<Recipe> {
+  return request<Recipe>(`/recipes/${encodeURIComponent(id)}/photo`, {
+    method: 'PUT',
+    body: JSON.stringify({ imageBase64, contentType }),
+  });
+}
+
+export function removeRecipePhoto(id: string): Promise<Recipe> {
+  return request<Recipe>(`/recipes/${encodeURIComponent(id)}/photo`, { method: 'DELETE' });
+}
+
+// "I cooked this": each chosen pantry item loses 1 quantity (removed when it was the last).
+export function cookRecipe(id: string, itemIds: string[]): Promise<CookResult> {
+  return request<CookResult>(`/recipes/${encodeURIComponent(id)}/cook`, {
+    method: 'POST',
+    body: JSON.stringify({ itemIds }),
+  });
+}
+
+export function suggestIngredients(query: string): Promise<IngredientSuggestion[]> {
+  return request<IngredientSuggestion[]>(`/ingredients/suggest?q=${encodeURIComponent(query)}`);
 }

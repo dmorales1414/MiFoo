@@ -347,7 +347,7 @@ The app never talks to Supabase directly and holds no Supabase key.
 `/login` and `/signup`; logging in/out switches screens automatically, no `router.push` needed.
 The splash screen stays up until the saved login is checked.
 
-**Bottom nav:** Home and Profile now navigate (`router.replace`). Meals/Pantry still do nothing; add them to `TAB_ROUTES` in `BottomNavBar.tsx`.
+**Bottom nav:** Home, Meals and Profile navigate (`router.replace`). Pantry still does nothing; add it to `TAB_ROUTES` in `BottomNavBar.tsx`.
 
 **New native module:** `expo-secure-store` (and `expo-splash-screen`, already part of Expo). Run
 `npx expo install expo-secure-store expo-splash-screen`, then add `"expo-secure-store"` to `plugins` in `app.json`,
@@ -355,3 +355,47 @@ then make one more EAS build. Until then the app still works, but you must log i
 
 **Scanner flashing:** every `takePictureAsync` plays a shutter flash. `ScanDateScreen` now sets `animateShutter={false}`
 and waits 1 s between pictures. JS-only change, so it shows up on the next reload.
+
+---
+
+## 10. Meals, recipes and the + menu (added Nov 3)
+
+**The + button** now lives inside `BottomNavBar` (`src/components/CreateMenuFab.tsx`), so it appears on Home, Meals and Profile.
+It opens *Add a Food* (then Scan barcode / Enter manually, the old menu) or *Add a Meal* (Create recipe).
+Home hides it while you are removing items (`showCreateButton={false}`). `AddItemFab.tsx` is gone.
+
+| File | Job |
+|---|---|
+| `src/app/meals.tsx`, `src/app/recipe/{_layout,new,[id]}.tsx` | Routes |
+| `src/screens/MealsScreen.tsx` | Meals list: search, filter button, meal rows |
+| `src/screens/recipes/CreateRecipeScreen.tsx` | Create recipe (Figma frame) |
+| `src/screens/recipes/RecipeDetailScreen.tsx` | Read a meal; pencil button toggles edit mode; "I cooked this" |
+| `src/features/recipes/useRecipeForm.ts` | All form state (title, ingredients, steps, photo) + what is missing |
+| `src/features/recipes/saveRecipe.ts` | Create/replace the meal, then upload/remove the photo |
+| `src/features/recipes/{filters,quantity,units,useIngredientSearch}.ts` | Filter/sort rules, "1/2" parsing, unit list, debounced ingredient search |
+| `src/components/recipes/*` | RecipeForm, IngredientsEditor, StepsEditor, PhotoPicker, UnitPicker, MealRow, MealFilterSheet, CookSheet |
+| `src/services/photoPicker.ts` | Wrapper for `expo-image-picker` (safe if the native module is missing) |
+
+**How meals and your stored items interact** (matching is done by the backend, by ingredient name, see `backend/app/services/pantry.py`):
+1. Every meal shows "3 of 5 ingredients in your kitchen" and a green "Ready to cook" tag when you have all of them.
+2. Meals that use food about to expire get a "Uses Spinach" tag and are sorted first. The Home carousel shows the best ones.
+3. The Meals filter button: Ready to cook only, Uses expiring food only, sort by Best match / Newest / A to Z.
+4. Inside a meal, each ingredient is checked off if it is in your kitchen.
+5. "I cooked this" lets you pick which stored items you used; each goes down by 1 (removed at 0), so Home stays accurate.
+6. Searching for an ingredient suggests your own stored items first, then common ingredients.
+
+**New native module:** `expo-image-picker` (meal photos). Run `npx expo install expo-image-picker`, add this to `plugins` in `app.json`
+`["expo-image-picker", { "photosPermission": "MiFoo uses your photos for meal pictures.", "cameraPermission": "MiFoo uses the camera to take meal pictures." }]`
+and make one EAS build together with `expo-secure-store`. Until then everything works except photos (the tile explains why).
+
+---
+
+## 11. Keyboard handling (added Nov 9)
+
+**Rule: any screen with text boxes uses `<KeyboardAwareScroll>` (`src/components/KeyboardAwareScroll.tsx`) instead of `<ScrollView>`.**
+It adds space under the content while the keyboard is open and scrolls just enough to keep the box you are typing in above the keyboard (also when you move to the next box, or a multi-line box grows).
+
+Why not `KeyboardAvoidingView`: with `behavior={undefined}` (which is what we had for Android) it does nothing. Used in: LoginScreen, SignUpScreen, CreateRecipeScreen, RecipeDetailScreen (edit mode), ManualEntryScreen, ReviewItemScreen.
+Pop-up sheets (`Modal`), such as the Edit profile sheet in `ProfileScreen.tsx`, have no scrolling list, so they use `<KeyboardAvoidingView behavior="padding">` instead.
+
+Tweak: `MARGIN_ABOVE_KEYBOARD` in `KeyboardAwareScroll.tsx` (gap between the box and the keyboard).

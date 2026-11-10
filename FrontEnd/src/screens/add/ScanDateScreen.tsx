@@ -101,7 +101,7 @@ export default function ScanDateScreen() {
           guide="date"
           statusLabel={statusLabel}
           statusTone={detected ? 'success' : 'searching'}
-          torchOn={torchOn} // Flashlight
+          torchOn={torchOn}
           onToggleTorch={() => setTorchOn((on) => !on)}
         >
           {granted ? (

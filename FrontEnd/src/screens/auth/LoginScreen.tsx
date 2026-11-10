@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { KeyboardAwareScroll } from '../../components/KeyboardAwareScroll';
 import { Link } from 'expo-router';
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthTextField } from '../../components/auth/AuthTextField';
@@ -35,11 +36,8 @@ export default function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
+    <View style={styles.screen}>
+      <KeyboardAwareScroll
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
       >
@@ -92,7 +90,7 @@ export default function LoginScreen() {
             Sign Up
           </Link>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScroll>
+    </View>
   );
 }

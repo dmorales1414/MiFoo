@@ -23,6 +23,7 @@ export interface Meal {
   id: string;
   title: string;
   image?: ImageSourcePropType; // optional so the UI renders before you have real photos
+  note?: string; // small text on the card, e.g. "Uses Spinach"
 }
 
 // What the app sends to create an item (POST /items). The server adds id, userId, dateAdded.

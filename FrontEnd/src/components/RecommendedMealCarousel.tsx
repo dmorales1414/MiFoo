@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import {
   Animated,
   Image,
+  Pressable,
   Text,
   View,
   useWindowDimensions,
@@ -14,6 +15,10 @@ import type { Meal } from '../types/item';
 interface RecommendedMealCarouselProps {
   meals: Meal[];
   label?: string;
+  onPressMeal?: (id: string) => void;
+  /** Shown as a single card when there are no meals yet. Tapping it calls onPressEmpty. */
+  emptyText?: string;
+  onPressEmpty?: () => void;
 }
 
 // Tweak these to change how the carousel looks.
@@ -27,6 +32,9 @@ const SIDE_OPACITY = 0.6;
 export function RecommendedMealCarousel({
   meals,
   label = 'Recommended Meal',
+  onPressMeal,
+  emptyText,
+  onPressEmpty,
 }: RecommendedMealCarouselProps) {
   const { width } = useWindowDimensions();
   const cardWidth = width * CARD_WIDTH_RATIO;
@@ -56,19 +64,50 @@ export function RecommendedMealCarousel({
           { width: cardWidth, height: cardHeight, opacity, transform: [{ scale }] },
         ]}
       >
-        {item.image ? (
-          <Image
-            source={item.image}
-            style={styles.image}
-            resizeMode="cover"
-            accessibilityLabel={item.title}
-          />
-        ) : (
-          <View style={[styles.image, styles.placeholder]} />
-        )}
+        <Pressable
+          style={styles.image}
+          onPress={() => onPressMeal?.(item.id)}
+          disabled={!onPressMeal}
+          accessibilityRole="button"
+          accessibilityLabel={item.title}
+        >
+          {item.image ? (
+            <Image source={item.image} style={styles.image} resizeMode="cover" />
+          ) : (
+            <View style={[styles.image, styles.placeholder]} />
+          )}
+          {item.note || item.title ? (
+            <View style={styles.cardCaption}>
+              <Text style={styles.cardTitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+              {item.note ? (
+                <Text style={styles.cardNote} numberOfLines={1}>
+                  {item.note}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
+        </Pressable>
       </Animated.View>
     );
   };
+
+  if (meals.length === 0 && emptyText) {
+    return (
+      <View style={styles.container}>
+        <Pressable
+          style={[styles.card, styles.emptyCard, { width: cardWidth, height: cardHeight }]}
+          onPress={onPressEmpty}
+          accessibilityRole="button"
+          accessibilityLabel={emptyText}
+        >
+          <Text style={styles.emptyCardText}>{emptyText}</Text>
+        </Pressable>
+        <Text style={styles.label}>{label}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

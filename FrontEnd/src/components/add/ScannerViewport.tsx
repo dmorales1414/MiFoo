@@ -38,7 +38,6 @@ export function ScannerViewport({
     return () => loop.stop();
   }, [guide, statusTone, sweep]);
 
-  // Scanner guide UI
   const guideSize = guide === 'barcode' ? styles.guideBarcode : styles.guideDate;
   const cornerColor = statusTone === 'success' ? styles.guideSuccess : null;
   const guideHeight = guide === 'barcode' ? 130 : 72;

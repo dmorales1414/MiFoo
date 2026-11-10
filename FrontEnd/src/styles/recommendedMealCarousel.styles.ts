@@ -22,6 +22,27 @@ export const styles = StyleSheet.create({
   placeholder: {
     backgroundColor: colors.placeholderImage,
   },
+  cardCaption: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+  },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  cardNote: { fontSize: 12, color: '#FDE68A', marginTop: 1 },
+  emptyCard: {
+    backgroundColor: colors.field,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: colors.checkboxBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  emptyCardText: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
   label: {
     fontSize: 20,
     fontWeight: '700',

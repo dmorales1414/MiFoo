@@ -46,7 +46,14 @@
         }
       ],
       "expo-mlkit-ocr",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker", 
+        { 
+          "photosPermission": "MiFoo uses your photos for meal pictures.", 
+          "cameraPermission": "MiFoo uses the camera to take meal pictures." 
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

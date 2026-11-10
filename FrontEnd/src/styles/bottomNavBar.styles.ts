@@ -10,16 +10,17 @@ export const styles = StyleSheet.create({
     height: layout.navBarHeight,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
     backgroundColor: colors.navBackground,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.sm,
     ...shadows.floating,
   },
+  group: { flex: 1, flexDirection: 'row' },
+  centerGap: { width: layout.fabSize - 4 }, // room for the + button
   tab: {
+    flex: 1,
     alignItems: 'center',
     gap: 2,
-    minWidth: 64,
   },
   iconCircle: {
     width: 44,

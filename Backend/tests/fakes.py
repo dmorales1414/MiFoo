@@ -16,6 +16,7 @@ class FakeQuery:
     def delete(self): self.op = "delete"; return self
     def eq(self, col, val): self.filters.append(("eq", col, str(val))); return self
     def neq(self, col, val): self.filters.append(("neq", col, str(val))); return self
+    def in_(self, col, values): self.filters.append(("in", col, {str(v) for v in values})); return self
     def ilike(self, col, pattern): self.filters.append(("ilike", col, pattern)); return self
     def order(self, *_, **__): return self
     def limit(self, n): self._limit = n; return self
@@ -25,6 +26,7 @@ class FakeQuery:
             have = row.get(col)
             if kind == "eq" and str(have) != val: return False
             if kind == "neq" and str(have) == val: return False
+            if kind == "in" and str(have) not in val: return False
             if kind == "ilike":
                 # turn the LIKE pattern into a regex (\_ and \% are escaped literals)
                 rx = "".join(
@@ -36,10 +38,13 @@ class FakeQuery:
 
     def execute(self):
         if self.op == "insert":
-            row = {"id": str(uuid4()), "date_added": "2026-10-21T10:00:00+00:00",
-                   "created_at": "2026-10-28T10:00:00+00:00", **self.payload}
-            self.rows.append(row)
-            return SimpleNamespace(data=[row])
+            made = []
+            for payload in (self.payload if isinstance(self.payload, list) else [self.payload]):
+                row = {"id": str(uuid4()), "date_added": "2026-10-21T10:00:00+00:00",
+                       "created_at": "2026-10-28T10:00:00+00:00", **payload}
+                self.rows.append(row)
+                made.append(row)
+            return SimpleNamespace(data=made)
         hits = [r for r in self.rows if self._ok(r)]
         if self.op == "update":
             for r in hits: r.update(self.payload)
@@ -57,9 +62,23 @@ def _tokens(pattern):
             yield False, pattern[i]; i += 1
 
 
+class FakeBucket:
+    def __init__(self, files): self.files = files
+    def upload(self, path, data, options=None): self.files[path] = data
+    def remove(self, paths):
+        for p in paths: self.files.pop(p, None)
+    def get_public_url(self, path): return f"https://example.supabase.co/storage/v1/object/public/recipe-photos/{path}"
+
+
+class FakeStorage:
+    def __init__(self): self.files = {}
+    def from_(self, _bucket): return FakeBucket(self.files)
+
+
 class FakeDB:
     def __init__(self):
         self.tables = {}
+        self.storage = FakeStorage()
 
     def table(self, name):
         return FakeQuery(self.tables.setdefault(name, []))

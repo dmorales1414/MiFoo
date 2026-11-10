@@ -29,7 +29,10 @@ function Routes() {
           sends the user to the first available screen (Login). */}
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="meals" options={{ animation: 'none' }} />
         <Stack.Screen name="profile" options={{ animation: 'none' }} />
+        {/* Create recipe (/recipe/new) and a saved meal (/recipe/<id>). */}
+        <Stack.Screen name="recipe" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="add" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="explore" options={{ headerShown: true, title: 'Explore' }} />
       </Stack.Protected>

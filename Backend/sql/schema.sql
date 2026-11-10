@@ -20,20 +20,52 @@ create table if not exists public.items (
 );
 create index if not exists items_user_id_idx on public.items (user_id);
 
+-- ---------------------------------------------------------------------------
+-- recipes ("Meals"): each user's own recipes.
+-- The first version of this file made recipes with no owner and ingredients that pointed at
+-- items. Those tables were never used by the app, so if the old shape is found it is dropped
+-- and rebuilt below (this only happens once; recipes you create later are never touched).
+-- ---------------------------------------------------------------------------
+do $$
+begin
+  if exists (select 1 from information_schema.tables
+             where table_schema = 'public' and table_name = 'recipes')
+     and not exists (select 1 from information_schema.columns
+                     where table_schema = 'public' and table_name = 'recipes' and column_name = 'steps') then
+    drop table if exists public.recipe_ingredients;
+    drop table if exists public.recipes;
+  end if;
+end $$;
+
 create table if not exists public.recipes (
   id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
   title       text not null check (char_length(title) between 1 and 200),
-  description text,
-  source_url  text
+  image_url   text,                                   -- public URL in the recipe-photos bucket
+  steps       text[] not null default '{}' check (cardinality(steps) between 1 and 60),
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
 );
+create index if not exists recipes_user_id_idx on public.recipes (user_id);
 
+-- One row per ingredient line ("2 tbsp olive oil"). Ingredients are matched to the user's
+-- items BY NAME when recipes are shown (see backend/app/services/pantry.py), not by id:
+-- items get used up and re-bought, and a recipe should not break when that happens.
 create table if not exists public.recipe_ingredients (
   id         uuid primary key default gen_random_uuid(),
   recipe_id  uuid not null references public.recipes(id) on delete cascade,
-  item_id    uuid not null references public.items(id) on delete cascade,
-  quantity   integer not null default 1 check (quantity >= 1)
+  name       text not null check (char_length(name) between 1 and 100),
+  quantity   numeric(10,2) not null check (quantity > 0),
+  unit       text check (unit is null or char_length(unit) <= 20),
+  position   integer not null default 0
 );
 create index if not exists recipe_ingredients_recipe_idx on public.recipe_ingredients (recipe_id);
+
+-- Recipe photos. Public bucket (the app shows them with a plain image URL); file names
+-- contain the user id and a random part. Only the backend uploads, with the secret key.
+insert into storage.buckets (id, name, public)
+values ('recipe-photos', 'recipe-photos', true)
+on conflict (id) do update set public = true;
 
 -- ---------------------------------------------------------------------------
 -- profiles: PUBLIC info about a user (safe to show on a social page).

@@ -3,20 +3,19 @@ import { useCallback, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AddItemFab } from '../components/AddItemFab';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { ItemSection } from '../components/ItemSection';
 import { RecommendedMealCarousel } from '../components/RecommendedMealCarousel';
 import { RemoveSelectedButton } from '../components/RemoveSelectedButton';
-import { sampleMeals } from '../data/sampleData';
 import { useItems } from '../hooks/useItems';
+import { useRecipes } from '../hooks/useRecipes';
 import { styles } from '../styles/homeScreen.styles';
 import { layout, spacing } from '../styles/theme';
-import type { ItemCategory } from '../types/item';
+import type { ItemCategory, Meal } from '../types/item';
 
 // The Home screen. It owns all the state and passes it down to the components:
 //   Frame 1 (default)      -> nothing open, nothing selected
-//   Frame 2 (add menu)     -> isMenuOpen is true
+//   Frame 2 (add menu)     -> the + button in the nav bar (components/CreateMenuFab.tsx)
 //   Frame 3 (manage mode)  -> managingCategory is set and some items are selected
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -24,13 +23,26 @@ export default function HomeScreen() {
   // Items come from the FastAPI backend (falls back to sample data if it is unreachable).
   const { items, offlineReason, refresh, removeItems } = useItems();
   // Reload every time Home is shown, so an item added on the add-item screens appears.
+  // Meals for the carousel: best suggestion first (uses food that is about to expire).
+  const { recipes, refresh: refreshRecipes } = useRecipes();
   useFocusEffect(
     useCallback(() => {
       refresh();
-    }, [refresh]),
+      refreshRecipes();
+    }, [refresh, refreshRecipes]),
   );
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const carouselMeals: Meal[] = recipes.slice(0, 8).map((r) => ({
+    id: r.id,
+    title: r.title,
+    image: r.imageUrl ? { uri: r.imageUrl } : undefined,
+    note: r.usesExpiringSoon.length > 0
+      ? `Uses ${r.usesExpiringSoon.slice(0, 2).join(', ')}`
+      : r.canMakeNow
+        ? 'Ready to cook'
+        : undefined,
+  }));
+
   // Which section is in manage mode (null = none). Only one at a time, like the mockup.
   const [managingCategory, setManagingCategory] = useState<ItemCategory | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -40,11 +52,10 @@ export default function HomeScreen() {
 
   // Heights that keep the floating controls above the system gesture bar.
   const navBottom = insets.bottom + layout.navBarBottomGap;
-  const controlsBottom = navBottom + layout.navBarHeight + spacing.md; // FAB / remove button sit above the nav
+  const controlsBottom = navBottom + layout.navBarHeight + spacing.md; // the remove button sits above the nav
   const scrollBottomPadding = controlsBottom + layout.fabSize + spacing.xl;
 
   const handleToggleManage = (category: ItemCategory) => {
-    setIsMenuOpen(false);
     setSelectedIds([]);
     // Pressing "Done" on the section that is already managed exits manage mode.
     setManagingCategory((current) => (current === category ? null : category));
@@ -73,7 +84,12 @@ export default function HomeScreen() {
           paddingBottom: scrollBottomPadding,
         }}
       >
-        <RecommendedMealCarousel meals={sampleMeals} />
+        <RecommendedMealCarousel
+          meals={carouselMeals}
+          onPressMeal={(id) => router.push({ pathname: '/recipe/[id]', params: { id } })}
+          emptyText="Add a meal to get recommendations"
+          onPressEmpty={() => router.push('/recipe/new')}
+        />
 
         {offlineReason && (
           <View style={[styles.offlineBanner, { marginTop: spacing.lg }]}>
@@ -103,25 +119,16 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Frame 3 swaps the + button for the red remove bar. */}
-      {isManaging ? (
+      {/* Frame 3: while removing items the + button hides and the red remove bar appears. */}
+      {isManaging && (
         <RemoveSelectedButton
           bottomOffset={controlsBottom}
           count={selectedIds.length}
           onPress={handleRemoveSelected}
         />
-      ) : (
-        <AddItemFab
-          bottomOffset={controlsBottom}
-          isMenuOpen={isMenuOpen}
-          onToggleMenu={() => setIsMenuOpen((open) => !open)}
-          onCloseMenu={() => setIsMenuOpen(false)}
-          onScanBarcode={() => router.push('/add/scan-barcode')}
-          onEnterManually={() => router.push('/add/manual')}
-        />
       )}
 
-      <BottomNavBar activeTab="home" bottomOffset={navBottom} />
+      <BottomNavBar activeTab="home" bottomOffset={navBottom} showCreateButton={!isManaging} />
     </View>
   );
 }

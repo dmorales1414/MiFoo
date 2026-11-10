@@ -5,7 +5,6 @@ import {
   Image,
   KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   Switch,
@@ -206,7 +205,7 @@ function EditProfileSheet({ visible, me, onClose }: { visible: boolean; me: Me; 
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <Pressable style={styles.backdrop} onPress={onClose}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <Text style={styles.sheetTitle}>Edit profile</Text>

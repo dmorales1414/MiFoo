@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { KeyboardAwareScroll } from '../../components/KeyboardAwareScroll';
+import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddItemHeader } from '../../components/add/AddItemHeader';
@@ -42,9 +43,9 @@ export default function ManualEntryScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={styles.root}>
       <AddItemHeader />
-      <ScrollView
+      <KeyboardAwareScroll
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -99,7 +100,7 @@ export default function ManualEntryScreen() {
             />
           )}
         </View>
-      </ScrollView>
+      </KeyboardAwareScroll>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
         <Text style={[styles.footnote, showErrors && !valid && styles.footnoteDanger]}>
@@ -113,6 +114,6 @@ export default function ManualEntryScreen() {
         </Text>
         <PrimaryButton icon="add" label="Add item" loading={submitting} onPress={handleAdd} />
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

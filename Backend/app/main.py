@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.routers import auth, health, items, me, products
+from app.routers import auth, health, ingredients, items, me, products, recipes
 from app.services.auth import AuthFailure
 
 app = FastAPI(title="MiFoo API")
@@ -32,3 +32,5 @@ app.include_router(auth.router)
 app.include_router(me.router)
 app.include_router(products.router)
 app.include_router(items.router)
+app.include_router(recipes.router)
+app.include_router(ingredients.router)

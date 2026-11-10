@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import Item, ItemCreate, ItemUpdate, Recipe, RecipeIngredient
+from app.schemas import Item, ItemCreate, ItemUpdate, RecipeIn
 
 
 def test_item_create_accepts_camelcase_json():
@@ -49,10 +49,22 @@ def test_update_is_partial():
     assert ItemUpdate.model_validate({"quantity": 3}).model_dump(exclude_unset=True) == {"quantity": 3}
 
 
-def test_recipe_and_ingredient():
-    r = Recipe.model_validate({"id": str(uuid4()), "title": "Soup", "sourceUrl": "https://x.test"})
-    assert r.source_url == "https://x.test"
-    RecipeIngredient.model_validate({"id": str(uuid4()), "recipeId": str(uuid4()), "itemId": str(uuid4())})
+def test_recipe_in_cleans_and_requires_parts():
+    r = RecipeIn.model_validate({
+        "title": "  Garlic   pasta ",
+        "ingredients": [{"name": " olive  oil", "quantity": 2, "unit": "tbsp"}, {"name": "salt", "quantity": 1, "unit": ""}],
+        "steps": ["Boil water.", "   ", "Add pasta."],
+    })
+    assert r.title == "Garlic pasta" and r.ingredients[0].name == "olive oil"
+    assert r.ingredients[1].unit is None and r.steps == ["Boil water.", "Add pasta."]
+    for bad in (
+        {"title": "x", "ingredients": [], "steps": ["a"]},
+        {"title": "x", "ingredients": [{"name": "a", "quantity": 1}], "steps": ["  "]},
+        {"title": "", "ingredients": [{"name": "a", "quantity": 1}], "steps": ["a"]},
+        {"title": "x", "ingredients": [{"name": "a", "quantity": 0}], "steps": ["a"]},
+    ):
+        with pytest.raises(Exception):
+            RecipeIn.model_validate(bad)
 
 
 def test_profile_has_no_email_and_validates_username():
