@@ -129,6 +129,7 @@ export const styles = StyleSheet.create({
   },
   checkboxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
 
+  // quantity stepper in the cook sheet
   stepper: {
     height: 36,
     borderRadius: radii.md,

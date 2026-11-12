@@ -4,6 +4,7 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -18,6 +19,11 @@ import { BottomNavBar } from '../components/BottomNavBar';
 import { PrimaryButton, TextLink } from '../components/Buttons';
 import { useAuth } from '../features/auth/AuthContext';
 import { displayNameError, MAX_DISPLAY_NAME, phoneError, usernameError } from '../features/auth/validation';
+import {
+  requestNotificationPermission,
+  sendTestNotification,
+  syncRemindersFromServer,
+} from '../services/notifications';
 import { styles } from '../styles/profileScreen.styles';
 import { colors, layout, spacing } from '../styles/theme';
 import type { Me } from '../types/auth';
@@ -64,11 +70,37 @@ export default function ProfileScreen() {
 
   async function togglePush(value: boolean) {
     setNotice(null);
+    let unavailable = false;
+    if (value) {
+      // Turning ON: the phone must allow notifications first (shows the permission pop-up).
+      const permission = await requestNotificationPermission();
+      if (permission === 'denied') {
+        Alert.alert(
+          'Notifications are blocked',
+          'Allow notifications for MiFoo in your phone settings, then turn this on again.',
+          [{ text: 'Not now', style: 'cancel' }, { text: 'Open settings', onPress: () => Linking.openSettings() }],
+        );
+        return;
+      }
+      unavailable = permission === 'unavailable';
+    }
     try {
       await updateMe({ pushNotificationsEnabled: value });
     } catch (e) {
       setNotice(e instanceof Error ? e.message : 'Could not save that setting.');
+      return;
     }
+    // Schedule (or cancel) the reminders right away.
+    await syncRemindersFromServer(value);
+    if (unavailable) setNotice('Saved, but reminders need the next app build (it adds expo-notifications).');
+  }
+
+  async function testNotification() {
+    setNotice(null);
+    const result = await sendTestNotification();
+    if (result === 'sent') setNotice('Test sent. It arrives in 5 seconds. Leave the app to see it like a real reminder.');
+    else if (result === 'denied') setNotice('Notifications are blocked for MiFoo in your phone settings.');
+    else setNotice('Notifications need the next app build (it adds expo-notifications).');
   }
 
   function confirmLogOut() {
@@ -137,6 +169,10 @@ export default function ProfileScreen() {
               accessibilityLabel="Push notifications"
             />
           </View>
+          <Pressable onPress={testNotification} style={styles.editButton} accessibilityRole="button">
+            <Ionicons name="paper-plane-outline" size={18} color={colors.primary} />
+            <Text style={styles.editLabel}>Send a test notification</Text>
+          </Pressable>
         </View>
 
         {notice ? <Text style={styles.notice}>{notice}</Text> : null}

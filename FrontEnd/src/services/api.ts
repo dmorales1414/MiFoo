@@ -159,11 +159,11 @@ export function removeRecipePhoto(id: string): Promise<Recipe> {
   return request<Recipe>(`/recipes/${encodeURIComponent(id)}/photo`, { method: 'DELETE' });
 }
 
-// "I cooked this": each chosen pantry item loses 1 quantity (removed when it was the last).
-export function cookRecipe(id: string, itemIds: string[]): Promise<CookResult> {
+// "I cooked this": each chosen pantry item loses the amount used (removed when none is left).
+export function cookRecipe(id: string, uses: { itemId: string; amount: number }[]): Promise<CookResult> {
   return request<CookResult>(`/recipes/${encodeURIComponent(id)}/cook`, {
     method: 'POST',
-    body: JSON.stringify({ itemIds }),
+    body: JSON.stringify({ items: uses }),
   });
 }
 

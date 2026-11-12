@@ -12,6 +12,7 @@ import type { Item } from '../types/item';
 export function useItems() {
   const [items, setItems] = useState<Item[]>([]);
   const [usingSample, setUsingSample] = useState(false);
+  const [loaded, setLoaded] = useState(false); // true once the first load (real or sample) finished
   const [offlineReason, setOfflineReason] = useState<string | null>(null);
   const hasLoadedRealData = useRef(false);
 
@@ -21,12 +22,14 @@ export function useItems() {
       hasLoadedRealData.current = true;
       setItems(data);
       setUsingSample(false);
+      setLoaded(true);
       setOfflineReason(null);
     } catch (error) {
       setOfflineReason(error instanceof Error ? error.message : 'Could not load items.');
       if (!hasLoadedRealData.current) {
         setItems(sampleItems);
         setUsingSample(true);
+        setLoaded(true);
       }
       // Otherwise keep showing the last real list we loaded.
     }
@@ -45,5 +48,5 @@ export function useItems() {
     [usingSample, refresh],
   );
 
-  return { items, offlineReason, refresh, removeItems };
+  return { items, loaded, usingSample, offlineReason, refresh, removeItems };
 }

@@ -53,6 +53,13 @@
           "photosPermission": "MiFoo uses your photos for meal pictures.", 
           "cameraPermission": "MiFoo uses the camera to take meal pictures." 
         }
+      ],
+      [
+        "expo-notifications", 
+        { 
+          "color": "#2563EB", 
+          "defaultChannel": "expiry" 
+        }
       ]
     ],
     "experiments": {

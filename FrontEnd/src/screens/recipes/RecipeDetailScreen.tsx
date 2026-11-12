@@ -58,12 +58,12 @@ export default function RecipeDetailScreen() {
     }, [load, editing]),
   );
 
-  async function confirmCook(itemIds: string[]) {
+  async function confirmCook(uses: { itemId: string; amount: number }[]) {
     if (!recipe) return;
     setCookBusy(true);
     setCookError(null);
     try {
-      const result = await cookRecipe(recipe.id, itemIds);
+      const result = await cookRecipe(recipe.id, uses);
       setCookOpen(false);
       await load();
       Alert.alert('Kitchen updated', `${result.updated} item${result.updated === 1 ? '' : 's'} reduced, ${result.removed} removed.`);

@@ -84,7 +84,7 @@ export default function SignUpScreen() {
             label="Your Name"
             value={displayName}
             onChangeText={setDisplayName}
-            placeholder="First & Last Name"
+            placeholder="Daniel Morales"
             maxLength={MAX_DISPLAY_NAME}
             autoCapitalize="words"
             textContentType="name"

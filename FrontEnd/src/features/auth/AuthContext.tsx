@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { fetchMe, logIn as apiLogIn, signUp as apiSignUp, updateMe as apiUpdateMe } from '../../services/api';
+import { cancelReminders } from '../../services/notifications';
 import { clearSession, onSessionChange, restoreSession, setSession } from '../../services/session';
 import type { Me, MeUpdate, SignUpInput } from '../../types/auth';
 
@@ -52,7 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () =>
       onSessionChange((session) => {
         setSignedIn(session !== null);
-        if (!session) setMe(null);
+        if (!session) {
+          setMe(null);
+          cancelReminders(); // logging out (or an expired login) must not leave reminders behind
+        }
       }),
     [],
   );

@@ -399,3 +399,39 @@ Why not `KeyboardAvoidingView`: with `behavior={undefined}` (which is what we ha
 Pop-up sheets (`Modal`), such as the Edit profile sheet in `ProfileScreen.tsx`, have no scrolling list, so they use `<KeyboardAvoidingView behavior="padding">` instead.
 
 Tweak: `MARGIN_ABOVE_KEYBOARD` in `KeyboardAwareScroll.tsx` (gap between the box and the keyboard).
+
+---
+
+## 12. Expiration reminders (added Nov 10)
+
+**What:** phone notifications about food that is about to expire, scheduled **on the phone itself** (local notifications).
+No server, Firebase or Expo push service needed, and it works offline. Works in a development build (not Expo Go on Android for remote push, but local ones do not need that).
+
+**When** (all in `src/utils/reminders.ts`, easy to change):
+- 9:00 AM local time (`REMINDER_HOUR`), 3 days before, 1 day before, and on the day (`DAYS_BEFORE = [3, 1, 0]`)
+- items on the same day are combined into ONE notification ("Milk, Eggs and 2 more expire tomorrow")
+- produce with no date: one "Check your produce" reminder 5 days after it was added
+- at most 60 are scheduled (phones limit this), soonest first
+
+**How it stays correct:** `services/notifications.ts` cancels everything and schedules again whenever
+- Home loads, or you add / remove / cook (the item list changes) -> `HomeScreen.tsx`
+- the Push Notifications switch changes -> `ProfileScreen.tsx` (asks the phone for permission when turned ON)
+- you log out or the login expires -> `AuthContext.tsx` cancels them all
+
+**Setup (once):**
+1. `npx expo install expo-notifications`
+2. In `app.json` `plugins` add `["expo-notifications", { "color": "#2563EB", "defaultChannel": "expiry" }]`
+   (optional `"icon": "./assets/images/notification-icon.png"`: 96x96, all-white with transparent background; without it Android shows the app icon)
+3. New EAS build (`eas build --profile development --platform android`), install it
+4. Open Profile -> Notifications -> **Send a test notification**. It arrives in 5 seconds. Then leave the app and try again to see it on the lock screen.
+
+Until the new build, everything still runs; the reminders just do nothing (the Profile screen says so).
+
+**Good to know**
+- Android may deliver a few minutes late when the phone is in battery saver / Doze. That is normal for a 9 AM reminder.
+- If the user denies the permission, the switch explains how to allow it in phone settings.
+- Reminders are per phone. A second phone schedules its own when the app opens there.
+
+**Later: real push from the server** (needed only for reminders while the app was never opened, or sent to other phones):
+Android needs Firebase Cloud Messaging V1 credentials uploaded to EAS, the app saves its Expo push token in a new table, and a daily job on the backend
+calls the Expo push API. That job needs a scheduler where the backend is hosted, so decide it together with the hosting choice.

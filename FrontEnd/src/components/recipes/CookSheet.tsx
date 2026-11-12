@@ -95,7 +95,7 @@ export function CookSheet({ visible, recipe, busy, error, onConfirm, onClose }: 
                     >
                       <Ionicons name="remove" size={20} color={colors.textPrimary} />
                     </Pressable>
-                    <Text style={[styles.stepperValue, { minWidth: 35, textAlign: 'center' }]}>{amount}</Text>
+                    <Text style={[styles.stepperValue, { minWidth: 32, textAlign: 'center' }]}>{amount}</Text>
                     <Pressable
                       style={[styles.stepperButton, amount >= match.quantity && styles.stepperButtonDisabled]}
                       disabled={amount >= match.quantity}
