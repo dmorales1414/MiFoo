@@ -3,8 +3,29 @@ import { router } from 'expo-router';
 import { Image, Pressable, Text, View } from 'react-native';
 
 import { styles } from '../../styles/recipes/meals.styles';
-import { colors } from '../../styles/theme';
+import { colors, statusColors } from '../../styles/theme';
 import type { RecipeSummary } from '../../types/recipe';
+
+// "11/11 Pantry Match": green when you have every ingredient, amber when you have at least
+// half, gray otherwise.
+export function PantryMatchChip({ owned, total }: { owned: number; total: number }) {
+  const palette =
+    total > 0 && owned >= total
+      ? statusColors.safe
+      : total > 0 && owned / total >= 0.5
+        ? statusColors.useSoon
+        : statusColors.none;
+  return (
+    <View style={styles.matchRow}>
+      <View style={[styles.matchCount, { backgroundColor: palette.badgeBackground }]}>
+        <Text style={[styles.matchCountText, { color: palette.badgeText }]}>
+          {owned}/{total}
+        </Text>
+      </View>
+      <Text style={styles.matchLabel}>Pantry Match</Text>
+    </View>
+  );
+}
 
 // One meal in the Meals list: picture, title, and how it relates to what you have stored.
 export function MealRow({ recipe }: { recipe: RecipeSummary }) {
@@ -27,24 +48,15 @@ export function MealRow({ recipe }: { recipe: RecipeSummary }) {
         <Text style={styles.rowTitle} numberOfLines={2}>
           {recipe.title}
         </Text>
-        <Text style={styles.rowMeta}>
-          {recipe.ingredientsOwned} of {recipe.ingredientCount} ingredients in your kitchen
-        </Text>
-        {recipe.canMakeNow || soon.length > 0 ? (
+        <PantryMatchChip owned={recipe.ingredientsOwned} total={recipe.ingredientCount} />
+        {soon.length > 0 ? (
           <View style={styles.chipRow}>
-            {recipe.canMakeNow ? (
-              <View style={[styles.chip, styles.chipReady]}>
-                <Text style={styles.chipReadyText}>Ready to cook</Text>
-              </View>
-            ) : null}
-            {soon.length > 0 ? (
-              <View style={[styles.chip, styles.chipSoon]}>
-                <Text style={styles.chipSoonText} numberOfLines={1}>
-                  Uses {soon.slice(0, 2).join(', ')}
-                  {soon.length > 2 ? ` +${soon.length - 2}` : ''}
-                </Text>
-              </View>
-            ) : null}
+            <View style={[styles.chip, styles.chipSoon]}>
+              <Text style={styles.chipSoonText} numberOfLines={1}>
+                Uses {soon.slice(0, 2).join(', ')}
+                {soon.length > 2 ? ` +${soon.length - 2}` : ''}
+              </Text>
+            </View>
           </View>
         ) : null}
       </View>

@@ -20,6 +20,26 @@ create table if not exists public.items (
 );
 create index if not exists items_user_id_idx on public.items (user_id);
 
+-- Added with the Pantry tab. "alter ... if not exists" makes this safe on a database that
+-- already has an items table: old rows get location 'pantry' and no classification.
+--   location:       where it is kept (Fridge / Freezer / Pantry tabs in the app)
+--   classification: free text such as "Ice Cream" or "Produce" (shown on the Item Info screen)
+alter table public.items add column if not exists location text not null default 'pantry';
+alter table public.items add column if not exists classification text;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'items_location_check') then
+    alter table public.items
+      add constraint items_location_check check (location in ('fridge', 'freezer', 'pantry'));
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'items_classification_check') then
+    alter table public.items
+      add constraint items_classification_check
+      check (classification is null or char_length(classification) between 1 and 60);
+  end if;
+end $$;
+
 -- ---------------------------------------------------------------------------
 -- recipes ("Meals"): each user's own recipes.
 -- The first version of this file made recipes with no owner and ingredients that pointed at

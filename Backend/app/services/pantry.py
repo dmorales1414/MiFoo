@@ -84,11 +84,14 @@ def annotate(recipe: dict, ingredient_rows: list[dict], items: list[dict], today
     ingredients = []
     owned = 0
     expiring_names: list[str] = []
+    matched_ids: list = []
     for row in sorted(ingredient_rows, key=lambda r: r.get("position", 0)):
         matches = matches_for(row["name"], items, today)
         if matches:
             owned += 1
         for m in matches:
+            if m["id"] not in matched_ids:
+                matched_ids.append(m["id"])
             if m["expiring_soon"] and m["item_name"] not in expiring_names:
                 expiring_names.append(m["item_name"])
         ingredients.append(
@@ -111,6 +114,7 @@ def annotate(recipe: dict, ingredient_rows: list[dict], items: list[dict], today
         "ingredients_owned": owned,
         "can_make_now": total > 0 and owned == total,
         "uses_expiring_soon": expiring_names,
+        "matched_item_ids": matched_ids,
         "ingredients": ingredients,
     }
 

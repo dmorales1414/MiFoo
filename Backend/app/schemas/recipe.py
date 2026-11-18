@@ -118,6 +118,7 @@ class RecipeSummary(CamelModel):
     ingredients_owned: int  # how many ingredient lines have a matching item in the pantry
     can_make_now: bool  # every ingredient is in the pantry
     uses_expiring_soon: list[str] = []  # names of pantry items this recipe would use up
+    matched_item_ids: list[UUID] = []  # ids of the stored items its ingredients match (Item Info screen)
 
 
 class RecipeDetail(RecipeSummary):

@@ -1,5 +1,5 @@
 import type { AuthResult, Me, MeUpdate, Session, SignUpInput } from '../types/auth';
-import type { Item, NewItem } from '../types/item';
+import type { Item, ItemChanges, NewItem, RemoveResult } from '../types/item';
 import type {
   CookResult,
   IngredientSuggestion,
@@ -56,7 +56,7 @@ async function send(path: string, init: RequestInit | undefined, token: string |
   }
 }
 
-async function request<T>(path: string, init?: RequestInit, { auth = true }: RequestOptions = {}): Promise<T> {
+async function requestOnce<T>(path: string, init: RequestInit | undefined, { auth = true }: RequestOptions): Promise<T> {
   let response = await send(path, init, auth ? await getAccessToken() : null);
 
   // The token may have just expired: refresh once and retry.
@@ -82,6 +82,25 @@ async function request<T>(path: string, init?: RequestInit, { auth = true }: Req
     throw new ApiError(response.status, detailToMessage(body, `Server error (${response.status}).`));
   }
   return body as T;
+}
+
+// Reads (GET) are safe to repeat, so a dropped connection or a 5xx answer from a server that was
+// just waking up is tried again (up to 2 more times) before the screen sees an error. Writes are
+// never repeated here: a retry could, for example, add the same item twice.
+const RETRY_DELAYS_MS = [800, 1800];
+const RETRYABLE_STATUSES = new Set([0, 500, 502, 503, 504]);
+
+async function request<T>(path: string, init?: RequestInit, options: RequestOptions = {}): Promise<T> {
+  const isRead = !init?.method || init.method.toUpperCase() === 'GET';
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await requestOnce<T>(path, init, options);
+    } catch (error) {
+      const retryable = error instanceof ApiError && RETRYABLE_STATUSES.has(error.status);
+      if (!isRead || !retryable || attempt >= RETRY_DELAYS_MS.length) throw error;
+      await new Promise<void>((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]));
+    }
+  }
 }
 
 // ---- Accounts ---------------------------------------------------------------------------
@@ -119,8 +138,24 @@ export function fetchItems(): Promise<Item[]> {
   return request<Item[]>('/items');
 }
 
+export function fetchItem(id: string): Promise<Item> {
+  return request<Item>(`/items/${encodeURIComponent(id)}`);
+}
+
 export function createItem(item: NewItem): Promise<Item> {
   return request<Item>('/items', { method: 'POST', body: JSON.stringify(item) });
+}
+
+export function updateItem(id: string, changes: ItemChanges): Promise<Item> {
+  return request<Item>(`/items/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(changes) });
+}
+
+// Use up part of an item: the server takes `amount` off its quantity and deletes it at zero.
+export function removeItemAmount(id: string, amount: number): Promise<RemoveResult> {
+  return request<RemoveResult>(`/items/${encodeURIComponent(id)}/remove`, {
+    method: 'POST',
+    body: JSON.stringify({ amount }),
+  });
 }
 
 export function deleteItem(id: string): Promise<void> {

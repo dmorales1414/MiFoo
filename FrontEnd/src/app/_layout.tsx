@@ -30,7 +30,10 @@ function Routes() {
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="index" />
         <Stack.Screen name="meals" options={{ animation: 'none' }} />
+        <Stack.Screen name="pantry" options={{ animation: 'none' }} />
         <Stack.Screen name="profile" options={{ animation: 'none' }} />
+        {/* Item Info (/item/<id>), opened by tapping an item on Home or Pantry. */}
+        <Stack.Screen name="item" options={{ animation: 'slide_from_right' }} />
         {/* Create recipe (/recipe/new) and a saved meal (/recipe/<id>). */}
         <Stack.Screen name="recipe" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="add" options={{ animation: 'slide_from_bottom' }} />

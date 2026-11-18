@@ -93,27 +93,72 @@ export function daysSince(dateAdded: string, today: Date = new Date()): number {
   return Math.round(diff / MS_PER_DAY);
 }
 
-// Everything a row needs to show one item: its status color and the line under the name.
-export function getItemDisplay(
-  item: Item,
-  today: Date = new Date(),
-): { status: ExpiryStatus; subtitle: string } {
+// An item's status for display. 'none' = fresh produce with no printed date: it gets a plain
+// gray card and no badge, because there is nothing to warn about yet.
+export type DisplayStatus = ExpiryStatus | 'none';
+
+// "Expiring in 4 days", "Expiring tomorrow", "Expires today", "Expired 2 days ago"
+export function formatExpiringIn(daysLeft: number): string {
+  if (daysLeft > 1) return `Expiring in ${daysLeft} days`;
+  if (daysLeft === 1) return 'Expiring tomorrow';
+  if (daysLeft === 0) return 'Expires today';
+  const ago = Math.abs(daysLeft);
+  return `Expired ${ago} ${ago === 1 ? 'day' : 'days'} ago`;
+}
+
+// "2 Days In", "1 Day In", "Added today": how long produce has been in the kitchen.
+export function formatDaysIn(stored: number): string {
+  if (stored <= 0) return 'Added today';
+  return `${stored} ${stored === 1 ? 'Day' : 'Days'} In`;
+}
+
+export interface ItemDisplay {
+  status: DisplayStatus;
+  subtitle: string; // the line under the name on a card
+  // Smaller is more urgent; used to sort lists (expired first, fresh produce last).
+  urgency: number;
+  // Item Info screen: the middle stat ("Expiring" / "Stored For") and its value.
+  statLabel: string;
+  statValue: string;
+}
+
+// Everything a card needs to show one item: its status color, the line under the name,
+// and how urgent it is.
+export function getItemDisplay(item: Item, today: Date = new Date()): ItemDisplay {
   if (item.expirationDate) {
     const daysLeft = daysUntil(item.expirationDate, today);
     return {
       status: getExpiryStatus(daysLeft),
-      subtitle: `${formatDate(item.expirationDate)} • ${formatDaysLeft(daysLeft)}`,
+      subtitle: formatExpiringIn(daysLeft),
+      urgency: daysLeft,
+      statLabel: daysLeft < 0 ? 'Expired' : 'Expiring',
+      statValue:
+        daysLeft < 0
+          ? `${Math.abs(daysLeft)} ${Math.abs(daysLeft) === 1 ? 'Day' : 'Days'} Ago`
+          : daysLeft === 0
+            ? 'Today'
+            : `${daysLeft} ${daysLeft === 1 ? 'Day' : 'Days'}`,
     };
   }
 
   // No expiration date (produce only): go by how long it has been stored.
   const stored = Math.max(0, daysSince(item.dateAdded, today));
-  const status: ExpiryStatus =
-    stored >= PRODUCE_URGENT_AFTER_DAYS
-      ? 'urgent'
-      : stored >= PRODUCE_USE_SOON_AFTER_DAYS
-        ? 'useSoon'
-        : 'safe';
-  const text = stored === 0 ? 'Added today' : `Stored ${stored} ${stored === 1 ? 'day' : 'days'}`;
-  return { status, subtitle: text };
+  const status: DisplayStatus =
+    stored >= PRODUCE_URGENT_AFTER_DAYS ? 'urgent' : stored >= PRODUCE_USE_SOON_AFTER_DAYS ? 'useSoon' : 'none';
+  return {
+    status,
+    subtitle: formatDaysIn(stored),
+    // Stored produce sorts after anything with a close date, oldest produce first among itself.
+    urgency: 1000 - stored,
+    statLabel: 'Stored For',
+    statValue: `${stored} ${stored === 1 ? 'Day' : 'Days'}`,
+  };
+}
+
+// Most urgent first. Ties go alphabetically so the order does not jump around.
+export function sortByUrgency(items: Item[], today: Date = new Date()): Item[] {
+  return items
+    .map((item) => ({ item, urgency: getItemDisplay(item, today).urgency }))
+    .sort((a, b) => a.urgency - b.urgency || a.item.itemName.localeCompare(b.item.itemName))
+    .map(({ item }) => item);
 }

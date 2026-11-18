@@ -22,15 +22,15 @@ interface BottomNavBarProps {
   activeTab: TabKey;
   bottomOffset: number;
   onTabPress?: (tab: TabKey) => void;
-  /** Set false to hide the blue + button (Home does this while removing items). */
+  /** Set false to hide the blue + button (the Pantry hides it while you select items to remove). */
   showCreateButton?: boolean;
 }
 
-// Where each tab goes. Pantry has no screen yet, so it does nothing for now:
-// add its route here when you build it (for example pantry: '/pantry').
-const TAB_ROUTES: Partial<Record<TabKey, '/' | '/meals' | '/profile'>> = {
+// Where each tab goes.
+const TAB_ROUTES: Record<TabKey, '/' | '/meals' | '/pantry' | '/profile'> = {
   home: '/',
   meals: '/meals',
+  pantry: '/pantry',
   profile: '/profile',
 };
 

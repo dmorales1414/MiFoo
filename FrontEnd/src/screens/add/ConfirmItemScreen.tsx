@@ -63,11 +63,6 @@ export default function ConfirmItemScreen() {
               <Text style={styles.productName}>{product.itemName}</Text>
               {details ? <Text style={styles.productMeta}>{details}</Text> : null}
             </View>
-
-            <View style={styles.categoryChip}>
-              <Ionicons name="restaurant-outline" size={14} color={colors.textPrimary} />
-              <Text style={styles.categoryChipText}>Food Items</Text>
-            </View>
           </View>
         </View>
 

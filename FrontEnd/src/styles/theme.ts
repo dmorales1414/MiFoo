@@ -39,6 +39,8 @@ export const statusColors = {
   safe: { border: '#22A559', badgeBackground: '#DCFCE7', badgeText: '#15803D', dot: '#22A559' },
   useSoon: { border: '#F59E0B', badgeBackground: '#FEF3C7', badgeText: '#B45309', dot: '#F59E0B' },
   urgent: { border: '#DC2626', badgeBackground: '#FEE2E2', badgeText: '#B91C1C', dot: '#DC2626' },
+  // Fresh produce with no printed date: a plain gray card, no badge.
+  none: { border: '#D1D5DB', badgeBackground: '#F3F4F6', badgeText: '#6B7280', dot: '#9CA3AF' },
 } as const;
 
 export const spacing = {

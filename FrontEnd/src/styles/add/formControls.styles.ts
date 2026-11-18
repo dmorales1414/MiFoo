@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
   stepperButtonDisabled: { opacity: 0.4 },
   stepperValue: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
 
-  // CategoryToggle
+  // LocationToggle
   toggle: {
     flexDirection: 'row',
     padding: 4,
@@ -66,4 +66,18 @@ export const styles = StyleSheet.create({
   toggleOptionSelected: { backgroundColor: colors.background, borderColor: colors.primary },
   toggleLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
   toggleLabelSelected: { color: colors.primary },
+
+  // ClassificationField chips
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radii.pill,
+    backgroundColor: colors.field,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  chipSelected: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
+  chipLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+  chipLabelSelected: { color: colors.primary },
 });

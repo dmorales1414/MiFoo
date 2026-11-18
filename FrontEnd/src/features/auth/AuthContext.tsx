@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import { fetchMe, logIn as apiLogIn, signUp as apiSignUp, updateMe as apiUpdateMe } from '../../services/api';
 import { cancelReminders } from '../../services/notifications';
+import { clearItemCache } from '../../services/itemCache';
 import { clearSession, onSessionChange, restoreSession, setSession } from '../../services/session';
 import type { Me, MeUpdate, SignUpInput } from '../../types/auth';
 
@@ -56,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!session) {
           setMe(null);
           cancelReminders(); // logging out (or an expired login) must not leave reminders behind
+          clearItemCache(); // and the next person must not see this user's items
         }
       }),
     [],

@@ -89,3 +89,88 @@ def test_patch_and_delete_own_item(api):
     assert c.patch(f"/items/{item_id}", json={}).status_code == 400
     assert c.delete(f"/items/{item_id}").status_code == 204
     assert db.rows == []
+
+
+def test_location_defaults_to_pantry_and_classification_is_cleaned(api):
+    c, db = api
+    body = c.post("/items", json=MILK).json()
+    assert body["location"] == "pantry" and body["classification"] is None
+    made = c.post("/items", json={**MILK, "location": "freezer", "classification": "  Ice   Cream "}).json()
+    assert made["location"] == "freezer" and made["classification"] == "Ice Cream"
+    blank = c.post("/items", json={**MILK, "classification": "   "}).json()
+    assert blank["classification"] is None
+
+
+def test_bad_location_is_422(api):
+    c, _ = api
+    assert c.post("/items", json={**MILK, "location": "garage"}).status_code == 422
+
+
+def test_update_location_and_classification(api):
+    c, _ = api
+    item_id = c.post("/items", json=MILK).json()["id"]
+    out = c.patch(f"/items/{item_id}", json={"location": "fridge", "classification": "Dairy"}).json()
+    assert out["location"] == "fridge" and out["classification"] == "Dairy"
+
+
+def test_get_one_item_is_scoped_to_the_user(api):
+    c, db = api
+    item_id = c.post("/items", json=MILK).json()["id"]
+    assert c.get(f"/items/{item_id}").json()["itemName"] == "Milk"
+    db.rows[0]["user_id"] = str(OTHER)
+    assert c.get(f"/items/{item_id}").status_code == 404
+
+
+def test_remove_part_of_an_item_then_the_rest(api):
+    c, db = api
+    item_id = c.post("/items", json={**MILK, "quantity": 3}).json()["id"]
+    first = c.post(f"/items/{item_id}/remove", json={"amount": 1}).json()
+    assert first["removed"] is False and first["item"]["quantity"] == 2
+    last = c.post(f"/items/{item_id}/remove", json={"amount": 2}).json()
+    assert last == {"removed": True, "item": None}
+    assert db.rows == []
+
+
+def test_remove_more_than_stored_deletes_it(api):
+    c, db = api
+    item_id = c.post("/items", json=MILK).json()["id"]
+    assert c.post(f"/items/{item_id}/remove", json={"amount": 50}).json()["removed"] is True
+    assert db.rows == []
+
+
+def test_remove_validation_and_other_users(api):
+    c, db = api
+    item_id = c.post("/items", json=MILK).json()["id"]
+    assert c.post(f"/items/{item_id}/remove", json={"amount": 0}).status_code == 422
+    db.rows[0]["user_id"] = str(OTHER)
+    assert c.post(f"/items/{item_id}/remove", json={"amount": 1}).status_code == 404
+    assert db.rows[0]["quantity"] == 2
+
+
+def test_dropped_connection_is_retried_then_503(api, monkeypatch):
+    import httpx
+    import app.db.retry as retry
+
+    monkeypatch.setattr(retry.time, "sleep", lambda _s: None)
+    c, _ = api
+    item_id = c.post("/items", json=MILK).json()["id"]
+
+    real = FakeQuery.execute
+    calls = {"n": 0}
+
+    def flaky(self):
+        calls["n"] += 1
+        if calls["n"] < 3:  # first two tries drop, the third works
+            raise httpx.RemoteProtocolError("server disconnected")
+        return real(self)
+
+    monkeypatch.setattr(FakeQuery, "execute", flaky)
+    assert c.get(f"/items/{item_id}").status_code == 200
+    assert calls["n"] == 3
+
+    def always(self):
+        raise httpx.ConnectError("down")
+
+    monkeypatch.setattr(FakeQuery, "execute", always)
+    r = c.get(f"/items/{item_id}")
+    assert r.status_code == 503 and "try again" in r.json()["detail"]

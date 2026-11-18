@@ -51,6 +51,23 @@ export const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 14,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  quantity: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  trailing: {
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
+    gap: spacing.sm,
+  },
+  location: {
+    fontSize: 13,
+    fontWeight: '600',
     color: colors.textSecondary,
   },
 });

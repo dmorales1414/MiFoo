@@ -8,10 +8,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddItemHeader } from '../../components/add/AddItemHeader';
 import { PrimaryButton } from '../../components/Buttons';
 import {
-  CATEGORY_LABELS,
-  CategoryToggle,
+  ClassificationField,
   DateField,
   FormField,
+  LocationToggle,
   QuantityStepper,
   TextField,
 } from '../../components/add/FormControls';
@@ -19,6 +19,8 @@ import { InfoCard } from '../../components/add/InfoCard';
 import { StepIntro } from '../../components/add/StepIntro';
 import { useAddItem } from '../../features/addItem/AddItemContext';
 import { useSubmitItem } from '../../features/addItem/useSubmitItem';
+import { isProduceClassification } from '../../features/items/classification';
+import { LOCATION_LABELS } from '../../features/items/locations';
 import { styles } from '../../styles/add/addScreen.styles';
 import { colors, spacing } from '../../styles/theme';
 import { daysUntil, formatUntilExpiration } from '../../utils/expiry';
@@ -33,7 +35,7 @@ export default function ReviewItemScreen() {
 
   if (!product) return <Redirect href="/add/scan-barcode" />;
 
-  const isProduce = draft.category === 'produce';
+  const isProduce = isProduceClassification(draft.classification);
   const nameFromBarcode = draft.itemName === product.itemName;
   const subtitleParts = [product.brand, draft.itemName, product.quantityText].filter(Boolean);
 
@@ -103,6 +105,10 @@ export default function ReviewItemScreen() {
             />
           </FormField>
 
+          <FormField label="Classification" tag="Kind of food">
+            <ClassificationField value={draft.classification} onChange={(classification) => update({ classification })} />
+          </FormField>
+
           <FormField
             label="Expiration date"
             tag={isProduce ? 'Optional' : draft.dateSource === 'scan' ? 'From date scan' : undefined}
@@ -119,8 +125,8 @@ export default function ReviewItemScreen() {
             <QuantityStepper value={draft.quantity} onChange={(quantity) => update({ quantity })} />
           </FormField>
 
-          <FormField label="Add to">
-            <CategoryToggle value={draft.category} onChange={(category) => update({ category })} />
+          <FormField label="Stored in">
+            <LocationToggle value={draft.location} onChange={(location) => update({ location })} />
           </FormField>
 
           {isProduce && (
@@ -137,7 +143,7 @@ export default function ReviewItemScreen() {
         <Text style={[styles.footnote, showErrors && !valid && styles.footnoteDanger]}>
           {showErrors && !valid
             ? 'Fix the highlighted fields to continue.'
-            : `This item will be saved to ${CATEGORY_LABELS[draft.category]}.`}
+            : `This item will be stored in your ${LOCATION_LABELS[draft.location]}.`}
         </Text>
         <PrimaryButton icon="add" label="Add item" loading={submitting} onPress={handleAdd} />
       </View>

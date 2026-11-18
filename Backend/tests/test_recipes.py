@@ -113,7 +113,7 @@ def test_recipes_are_private_to_their_owner(world):
     assert c.put(f"/recipes/{rid}", headers=other, json=PASTA).status_code == 404
     assert c.delete(f"/recipes/{rid}", headers=other).status_code == 404
     assert c.put(f"/recipes/{rid}/photo", headers=other, json={"imageBase64": "AAAA"}).status_code == 404
-    assert c.post(f"/recipes/{rid}/cook", headers=other, json={"itemIds": []}).status_code == 404
+    assert c.post(f"/recipes/{rid}/cook", headers=other, json={"items": []}).status_code == 404
     assert c.get(f"/recipes/{rid}", headers=h).status_code == 200
 
 
@@ -148,17 +148,28 @@ def test_photo_upload_replace_and_remove(world):
     assert db.storage.files == {}  # deleting the recipe deletes its photo
 
 
-def test_cook_uses_up_matching_items_only(world):
+def test_cook_uses_chosen_amounts_of_matching_items_only(world):
     c, db, h = world
-    garlic = add_item(c, h, "Garlic", SOON, qty=3)
+    garlic = add_item(c, h, "Garlic", SOON, qty=5)
     oil = add_item(c, h, "Olive Oil", LATER, qty=1)
+    pasta = add_item(c, h, "Spaghetti", LATER, qty=2)
     milk = add_item(c, h, "Milk", LATER, qty=2)  # not in the recipe
     rid = c.post("/recipes", headers=h, json=PASTA).json()["id"]
-    r = c.post(f"/recipes/{rid}/cook", headers=h, json={"itemIds": [garlic["id"], oil["id"], milk["id"]]})
-    assert r.status_code == 200 and r.json() == {"updated": 1, "removed": 1}
+    use = lambda item, n: {"itemId": item["id"], "amount": n}
+    r = c.post(f"/recipes/{rid}/cook", headers=h, json={"items": [use(garlic, 3), use(oil, 1), use(pasta, 9), use(milk, 1)]})
+    assert r.status_code == 200 and r.json() == {"updated": 1, "removed": 2}  # asking for more than exists uses it all up
     left = {i["itemName"]: i["quantity"] for i in c.get("/items", headers=h).json()}
     assert left == {"Garlic": 2, "Milk": 2}
-    assert c.post(f"/recipes/{rid}/cook", headers=h, json={"itemIds": []}).json() == {"updated": 0, "removed": 0}
+    assert c.post(f"/recipes/{rid}/cook", headers=h, json={"items": []}).json() == {"updated": 0, "removed": 0}
+    assert c.post(f"/recipes/{rid}/cook", headers=h, json={"items": [use(garlic, 0)]}).status_code == 422
+
+
+def test_cook_same_item_twice_adds_up(world):
+    c, _, h = world
+    garlic = add_item(c, h, "Garlic", SOON, qty=5)
+    rid = c.post("/recipes", headers=h, json=PASTA).json()["id"]
+    c.post(f"/recipes/{rid}/cook", headers=h, json={"items": [{"itemId": garlic["id"], "amount": 1}, {"itemId": garlic["id"], "amount": 2}]})
+    assert c.get("/items", headers=h).json()[0]["quantity"] == 2
 
 
 def test_ingredient_suggestions(world):

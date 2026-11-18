@@ -1,4 +1,4 @@
-from app.schemas.item import Item, ItemCategory, ItemCreate, ItemUpdate
+from app.schemas.item import Item, ItemCategory, ItemCreate, ItemLocation, ItemUpdate, RemoveRequest, RemoveResult
 from app.schemas.auth import AuthResult, LoginRequest, RefreshRequest, SessionOut, SignUpRequest
 from app.schemas.profile import Me, MeUpdate, Profile, ProfileUpdate
 from app.schemas.recipe import (
@@ -17,7 +17,7 @@ from app.schemas.recipe import (
 from app.schemas.user import User
 
 __all__ = [
-    "Item", "ItemCategory", "ItemCreate", "ItemUpdate",
+    "Item", "ItemCategory", "ItemCreate", "ItemLocation", "ItemUpdate", "RemoveRequest", "RemoveResult",
     "CookItem", "CookRequest", "CookResult", "IngredientIn", "IngredientOut", "IngredientSuggestion",
     "PantryMatch", "PhotoUpload", "RecipeDetail", "RecipeIn", "RecipeSummary",
     "Profile", "ProfileUpdate", "Me", "MeUpdate",

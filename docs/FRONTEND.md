@@ -10,6 +10,9 @@ This file explains what each folder holds, the conventions the code follows, how
 > - **EAS**: Expo Application Services (Expo's cloud build service)
 > - **SDK**: software development kit (here, the Expo SDK version, currently 57)
 > - **UI**: user interface
+> - **API**: application programming interface (here, the backend's web addresses the app calls)
+> - **ADB**: Android Debug Bridge (a command-line tool that talks to your phone over the USB cable)
+> - **UML**: unified modeling language (the class diagram from the proposal)
 
 ---
 
@@ -24,6 +27,9 @@ This file explains what each folder holds, the conventions the code follows, how
 | `react-native-safe-area-context` | Keeps content clear of the notch and gesture bar |
 | `expo-status-bar` | Controls the status bar icons |
 | `expo-dev-client` | Development build (used instead of Expo Go) |
+| `expo-camera` | Live camera: barcode scanning and taking pictures of the date |
+| `expo-mlkit-ocr` | Reads text from a picture on the phone (finds the expiration date) |
+| `@react-native-community/datetimepicker` | The system date picker |
 
 ---
 
@@ -33,14 +39,18 @@ This file explains what each folder holds, the conventions the code follows, how
 FrontEnd/
 ├── src/
 │   ├── app/          Routes (one file = one URL/screen). Kept tiny.
-│   ├── screens/      The actual screen UIs. Own the state.
-│   ├── components/   Reusable UI pieces used by screens.
-│   ├── styles/       All styling: one .styles.ts per component + theme.ts.
+│   ├── screens/      The actual screen UIs. Own the state. (screens/add = add-item flow)
+│   ├── components/   Reusable UI pieces used by screens. (components/add = add-item pieces)
+│   ├── features/     Logic that belongs to one feature (features/addItem = the draft item).
+│   ├── hooks/        Reusable React hooks (useItems loads Home's list).
+│   ├── services/     Talks to the outside world: backend API, OCR, API address config.
+│   ├── styles/       All styling: one .styles.ts per component + theme.ts (styles/add = add-item).
 │   ├── types/        TypeScript types shared across the app.
 │   ├── utils/        Pure helper functions (no UI).
-│   └── data/         Temporary sample data (replaced by the backend later).
+│   └── data/         Sample data, used only when the backend cannot be reached.
 ├── assets/           Images, fonts, icons (created by the Expo template).
 ├── app.json          Expo app configuration.
+├── .env              (you create it from .env.example) where the backend is: EXPO_PUBLIC_API_URL.
 ├── package.json      Dependencies and scripts.
 └── FRONTEND.md       This file.
 ```
@@ -54,8 +64,15 @@ expo-router turns each file here into a screen. The file name is the URL.
 | `_layout.tsx` | (wraps everything) | Root layout. A `Stack` navigator with headers hidden, a dark status bar, and `initialRouteName: 'index'` so Home is always the base screen. **This is the file to change when you add a tab bar.** |
 | `index.tsx` | `/` | The first screen the app opens. Only re-exports `HomeScreen`. |
 | `explore.tsx` | `/explore` | Placeholder route. Only re-exports `ExploreScreen`. |
+| `add/_layout.tsx` | (wraps `/add/*`) | Holds the draft item shared by the add-item screens (see section 3). |
+| `add/scan-barcode.tsx` | `/add/scan-barcode` | Add-item step 1: scan the barcode. |
+| `add/confirm-item.tsx` | `/add/confirm-item` | Step 1b: "Is this the right item?" |
+| `add/scan-date.tsx` | `/add/scan-date` | Step 2: scan the expiration date. |
+| `add/review.tsx` | `/add/review` | Step 3: review and save. |
+| `add/manual.tsx` | `/add/manual` | Manual entry (no scanning). |
 
 Rule: route files contain **no UI**. They re-export a screen from `src/screens`.
+The routes that use native code (camera, date picker) load their screen through `lazyScreen` (`src/utils/lazyScreen.tsx`) instead. If the installed development build is missing a native module, only that screen shows a "rebuild the app" message. Without this, expo-router would crash the whole app at launch.
 
 ### `src/screens/` — full screens
 
@@ -63,6 +80,11 @@ Rule: route files contain **no UI**. They re-export a screen from `src/screens`.
 |---|---|
 | `HomeScreen.tsx` | The Home screen. **Owns all the state** (item list, which section is in manage mode, selected items, whether the add menu is open) and passes it down to components. |
 | `ExploreScreen.tsx` | Placeholder ("Coming soon"). |
+| `add/ScanBarcodeScreen.tsx` | Camera + barcode reading. Checks the barcode's check digit, asks the backend what the product is, then goes to Confirm. |
+| `add/ConfirmItemScreen.tsx` | Shows the product Open Food Facts found (name, brand, size, photo). |
+| `add/ScanDateScreen.tsx` | Takes a picture about once a second, reads the text on the phone, and looks for a date (`parseExpirationDate`). |
+| `add/ReviewItemScreen.tsx` | Editable summary (name, date, quantity, Food/Produce), then **Add item** saves it. |
+| `add/ManualEntryScreen.tsx` | The same form with nothing pre-filled. |
 
 `HomeScreen` covers three Figma frames as three states of one screen:
 
@@ -84,12 +106,27 @@ Components receive data and callbacks through props. They hold no app-level stat
 | `RemoveSelectedButton.tsx` | The red "Remove N selected items" bar (disabled when nothing is selected). |
 | `BottomNavBar.tsx` | The Home / Meals / Pantry / Profile bar. **Visual only for now** (see section 6). |
 
+`AddItemFab.tsx` now opens the Figma "Add an item" card with two choices: **Scan barcode** and **Enter manually**.
+
+**`components/add/`** (used only by the add-item screens):
+
+| File | What it does |
+|---|---|
+| `AddItemHeader.tsx` | Back arrow, "Add an item", close (X). X closes the whole flow. |
+| `StepIntro.tsx` | Blue "IDENTIFY ITEM · 1 OF 3" label, 3-segment progress bar, title, description. |
+| `ScannerViewport.tsx` | Rounded camera area: corner guide, status chip, flashlight button. |
+| `CameraPermissionPrompt.tsx` | "Allow camera" prompt shown inside the camera area. |
+| `Buttons.tsx` | `PrimaryButton` (blue pill) and `TextLink`. |
+| `InfoCard.tsx` | Small hint box with an icon. |
+| `FormControls.tsx` | `FormField`, `TextField`, `DateField`, `QuantityStepper`, `CategoryToggle`. |
+
 ### `src/styles/` — all styling
 
 Styles are kept out of the component files so the JSX stays easy to read.
 
 - `theme.ts` is the single source of design tokens: `colors`, `statusColors` (per expiry status), `spacing`, `radii`, `shadows`, `layout`. Change a color here and it changes everywhere.
 - Every component or screen has a matching `*.styles.ts` file, such as `itemRow.styles.ts` for `ItemRow.tsx`.
+- The add-item flow's styles are in `styles/add/`.
 - They are `.ts`, not `.tsx`, because they contain no JSX. Renaming to `.tsx` also works.
 - React Native does not use CSS. These files use `StyleSheet.create`, which looks similar but is not CSS (no cascade or selectors).
 
@@ -102,13 +139,17 @@ What stays **inline** in components (not in the style files):
 
 | File | What it holds |
 |---|---|
-| `item.ts` | `Item` (matches the Item class in the UML diagram), `ItemCategory` (`'packaged' \| 'produce'`), `ExpiryStatus` (`'safe' \| 'useSoon' \| 'urgent'`), and `Meal`. |
+| `item.ts` | `Item` (matches the Item class in the UML diagram; `expirationDate` is `null` for produce without a date), `NewItem` (what the app sends to create one), `ItemCategory` (`'packaged' \| 'produce'`), `ExpiryStatus`, and `Meal`. |
+| `product.ts` | `ProductSuggestion`: what the backend returns for a scanned barcode. |
 
 ### `src/utils/`
 
 | File | What it holds |
 |---|---|
-| `expiry.ts` | Date helpers and the status rules: `daysUntil`, `getExpiryStatus`, `formatDate`, `formatDaysLeft`, `parseISODate`, `toISODate`. |
+| `expiry.ts` | Date helpers and the status rules: `daysUntil`, `getExpiryStatus`, `getItemDisplay` (status + text for a row, including produce with no date), `formatDate`, `formatLongDate`, `formatDaysLeft`, `parseISODate`, `toISODate`. |
+| `parseExpirationDate.ts` | Finds a date in messy OCR text ("BEST BEFORE 28 OCT 2026", "EXP 10/28/26", "28.10.26"...). Skips "packed on" dates. Tested on 37 label formats. |
+| `barcode.ts` | Barcode check-digit test (rejects camera misreads before calling the backend). |
+| `lazyScreen.tsx` | Loads a screen only when opened (see the routes note above). |
 
 Status thresholds live at the top of `expiry.ts`:
 
@@ -116,29 +157,56 @@ Status thresholds live at the top of `expiry.ts`:
 - `USE_SOON_MAX_DAYS = 5`, so **3–5 days** is **Use soon**
 - **6 days or more** is **Safe**
 
+**Produce without an expiration date** is shown by how long it has been stored (`PRODUCE_USE_SOON_AFTER_DAYS = 5`, `PRODUCE_URGENT_AFTER_DAYS = 7`). Those two numbers are **placeholders**: set them to your own rules.
+
 Why `parseISODate` exists: `new Date('2026-10-21')` is read as UTC midnight, which shows up as **Oct 20** in US time zones. The helper builds the date from its parts in local time. Always use it instead of `new Date('YYYY-MM-DD')`.
 
 ### `src/data/`
 
 | File | What it holds |
 |---|---|
-| `sampleData.ts` | Temporary items and meals so the screen renders before the backend exists. Dates are relative to today, so the badges always look the same. Delete this once Home loads real data. |
+| `sampleData.ts` | Sample items and meals. Home uses the sample items **only when the backend cannot be reached** (a yellow note says so). The meals are still always sample data. |
 
 ---
 
-## 3. How data flows on the Home screen
+## 3. How data flows
+
+**Home screen**
 
 ```
-sampleData.ts  ->  HomeScreen (state)  ->  ItemSection  ->  ItemRow  ->  StatusBadge
-                        |                      ^
-                        |                      |
-                        +-- callbacks (toggle manage, select item, remove) --+
+backend GET /items -> useItems (hooks) -> HomeScreen -> ItemSection -> ItemRow -> StatusBadge
+                                              |
+                        callbacks (toggle manage, select item, remove) go back up
 ```
 
 - State goes **down** through props. User actions go **up** through callback props such as `onToggleItem`.
-- When the backend exists, the only change in `HomeScreen` is where `items` comes from. The components stay the same.
+- Home reloads the list every time it comes back into view, so a newly added item appears.
+- If the backend is unreachable, Home shows the sample items and a yellow note with the reason.
 
----
+**Add-item flow** (the draft lives in `features/addItem/AddItemContext.tsx`, created by `app/add/_layout.tsx`)
+
+```
+Home "+"  ->  Scan barcode  ->  Confirm item  ->  Scan date  ->  Review  ->  Add item
+            \                                                    ^
+             \-> Enter manually --------------------------------/ (same save step)
+```
+
+1. **Scan barcode:** `expo-camera` reads the barcode. The check digit is verified on the phone, then `GET /products/barcode/{code}` asks the backend, which asks Open Food Facts. 404 means "not found": the screen offers manual entry.
+2. **Confirm item:** shows what was found. Nothing is saved yet.
+3. **Scan date:** about once a second the screen takes a picture, `expo-mlkit-ocr` reads the text on the phone, and `parseExpirationDate` looks for a date. Open Food Facts has no expiration dates, so this step is needed.
+4. **Review:** the user can edit everything. **Add item** sends `POST /items` and returns Home.
+
+**How the screens map to the database** (`backend/sql/schema.sql`)
+
+| Screen field | Database column | Rule enforced in the UI |
+|---|---|---|
+| Item name | `items.item_name` | Required, up to 200 characters |
+| "Add to": Food Items / Produce Items | `items.category` = `packaged` / `produce` | Barcode items start as Food Items |
+| Expiration date | `items.expiration_date` | **Required for Food Items, optional for Produce** (the database enforces the same) |
+| Quantity | `items.quantity` | 1 to 99 (the database only requires 1 or more) |
+| (not on screen) | `items.user_id`, `items.date_added` | Filled in by the backend |
+
+The barcode, brand, package size and photo come from Open Food Facts for display only. The database has no columns for them.
 
 ## 4. Running the app
 
@@ -148,6 +216,28 @@ Run everything from the `FrontEnd` folder, in PowerShell.
 npm install
 npx expo install @expo/vector-icons expo-font react-native-safe-area-context
 npx expo start -c        # -c clears Metro's cache
+```
+
+**One-time setup for the add-item screens** (they use native code, so the app must be **rebuilt** once):
+
+```powershell
+npx expo install expo-camera @react-native-community/datetimepicker expo-mlkit-ocr
+```
+
+Then add these to the `plugins` list in `app.json` (keep the plugins already there):
+
+```json
+["expo-camera", { "cameraPermission": "MiFoo uses the camera to scan barcodes and expiration dates.", "recordAudioAndroid": false }],
+"expo-mlkit-ocr"
+```
+
+Building only for Android, so no `expo-build-properties` plugin is needed. (If you ever build for iPhone, add `["expo-build-properties", { "ios": { "deploymentTarget": "16.4" } }]`. Expo SDK 57 rejects anything lower, even on Android builds, with "`ios.deploymentTarget` needs to be at least version 16.4".)
+
+Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` (see "Connecting to the backend" below). Rebuild and start:
+
+```powershell
+npx expo run:android --device
+npx expo start -c
 ```
 
 **Development build on an Android phone** (needed later for push notifications and OCR; Expo Go can't do either):
@@ -160,6 +250,20 @@ npx expo run:android --device    # needs Android Studio installed and the phone 
 
 ---
 
+### Connecting to the backend
+
+The phone must be able to reach the backend. Set `EXPO_PUBLIC_API_URL` in `.env`, then restart with `npx expo start -c`:
+
+| Situation | Value |
+|---|---|
+| Phone plugged in by USB (works on any Wi-Fi) | `http://localhost:8000`, after running `adb reverse tcp:8000 tcp:8000` (and `adb reverse tcp:8081 tcp:8081` for the dev server) |
+| Phone and computer on the same home Wi-Fi | `http://<your computer's address>:8000`, and start the backend with `uvicorn app.main:app --host 0.0.0.0` |
+| Presentation | The hosted backend's `https://` address |
+
+Public and school Wi-Fi often blocks phones from reaching computers on the same network, which is why the USB method or a hosted backend is safer for demos.
+
+---
+
 ## 5. Rules and gotchas learned so far
 
 - **Never install the old global `expo-cli`** (`npm i -g expo-cli`). It is deprecated, and it hijacked `npx expo start` earlier. The real CLI is built into the `expo` package.
@@ -169,6 +273,9 @@ npx expo run:android --device    # needs Android Studio installed and the phone 
 - **If Metro misbehaves,** restart with `npx expo start -c`.
 - **Long project paths can break Android builds.** The path contains spaces and parentheses and is long. If a build fails with odd file-not-found errors, move the repo to a short path like `C:\dev\MiFoo`.
 - **A real phone can't reach your computer's `localhost`.** When the frontend calls the backend, use the computer's local network address (store it in one config value, not scattered through the code).
+- **New native packages need a rebuild.** `expo-camera`, `expo-mlkit-ocr` and the date picker contain native code. A development build made before they were installed will not have them (the add-item screens show "This build is missing a native module"). Run `npx expo run:android --device` again.
+- **Red underline under `'/add/scan-barcode'` in VS Code?** The route type list is regenerated when `npx expo start` runs. Restart it.
+- **Date scanning needs light and a steady hand.** Fill the narrow guide with just the printed date. Use the flashlight button for dark packaging. If it cannot read a date, use "Enter date manually".
 - **Secrets never go in Git.** Keep keys in `.env` files that are listed in `.gitignore`. The Supabase service key belongs in the backend only.
 
 ---
@@ -181,10 +288,11 @@ npx expo run:android --device    # needs Android Studio installed and the phone 
 | Font | System font is used. The design looks like Inter. |
 | Meal images | Gray placeholders. Add photos to `assets/images` and set `image: require(...)` in `sampleData.ts`. |
 | Carousel | Approximates Figma (center card larger, sides shrink). Cards do not overlap like the design. |
-| Produce rows | Show an expiration date as in the Figma mockup, but the proposal says produce is tracked by **time stored**. When decided, change only the `subtitle` line in `ItemRow.tsx`. |
+| Produce rows | Produce with an expiration date shows it. Produce without one shows "Stored N days" (thresholds are placeholders, see section 2). |
 | Bottom nav bar | Visual only. `BottomNavBar` is drawn by `HomeScreen`. Once the Meals / Pantry / Profile screens exist, move the tab bar into `_layout.tsx` using expo-router tabs. |
-| Add item | `handleAddItem` in `HomeScreen.tsx` is a TODO. It will open the scanner / manual-entry screen. |
-| Data | Sample data only. No backend calls yet. |
+| Add item | Built (section 3). The OCR date reading has not been tested on real packaging yet; tune `parseExpirationDate.ts` if a label format is missed. |
+| Who is the user? | The backend currently saves every item under one test user (`DEV_USER_ID` in `backend/.env`). Login is not built yet. |
+| Data | Home loads items from the backend. Meals are still sample data. |
 | `explore` route | Placeholder. Rename or remove when its purpose is decided. |
 
 ---
@@ -193,10 +301,9 @@ npx expo run:android --device    # needs Android Studio installed and the phone 
 
 These folders are part of the architecture but **do not exist yet**. Do not assume they are there.
 
-- `src/features/scanner/`: barcode scanner (`expo-camera`) and OCR expiration-date scanner (`expo-mlkit-ocr`), each with a manual-entry fallback.
 - `src/features/notifications/`: Expo push notification handling.
-- `src/services/`: API calls to the FastAPI backend and to Open Food Facts.
-- A `backend/` folder next to `FrontEnd/` (Python + FastAPI + Supabase), in the same Git repository.
+- Login screens and the Supabase sign-in (the backend's `get_current_user_id` is the one function to change).
+- Meals / Pantry / Profile screens and the real tab bar.
 
 ---
 
@@ -211,4 +318,158 @@ These folders are part of the architecture but **do not exist yet**. Do not assu
 | What the first screen is | `src/app/index.tsx` |
 | Navigation structure or tab bar | `src/app/_layout.tsx` |
 | What data the Home screen shows | `items` state in `src/screens/HomeScreen.tsx` |
-| The fields on an item | `src/types/item.ts` (the UML Item class should be updated too) |
+| The fields on an item | `src/types/item.ts` (the UML Item class and `backend/sql/schema.sql` should be updated too) |
+| Where the backend is | `EXPO_PUBLIC_API_URL` in `.env` (read in `src/services/config.ts`) |
+| What the add-item screens say | The matching file in `src/screens/add/` |
+| Which dates the scanner understands | `src/utils/parseExpirationDate.ts` |
+| Produce "stored N days" cutoffs | `PRODUCE_USE_SOON_AFTER_DAYS` / `PRODUCE_URGENT_AFTER_DAYS` in `src/utils/expiry.ts` |
+
+---
+
+## 9. Accounts and login (added Oct 28)
+
+**Flow:** Login / Sign Up screens -> `AuthContext` -> `services/api.ts` -> backend `/auth/*` -> Supabase Auth.
+The app never talks to Supabase directly and holds no Supabase key.
+
+| File | Job |
+|---|---|
+| `src/app/login.tsx`, `signup.tsx`, `profile.tsx` | Routes (re-export the screens) |
+| `src/screens/auth/LoginScreen.tsx`, `SignUpScreen.tsx`, `src/screens/ProfileScreen.tsx` | The three Figma screens (Sign Up has an extra **Your Name** field = the big name on Profile) |
+| `src/features/auth/AuthContext.tsx` | `useAuth()`: `signedIn`, `me`, `logIn`, `signUp`, `logOut`, `updateMe` |
+| `src/features/auth/validation.ts` | Field rules (mirror the backend's) |
+| `src/services/session.ts` | Holds the tokens, refreshes them before they expire (one refresh at a time) |
+| `src/services/tokenStorage.ts` | Saves tokens in `expo-secure-store`; falls back to memory if that native module is not in the build yet |
+| `src/services/api.ts` | Adds `Authorization: Bearer ...` to every call, retries once after a 401 using the refresh token |
+| `src/components/auth/AuthTextField.tsx` | Labeled input (+ show/hide password) |
+| `src/components/Buttons.tsx` | `PrimaryButton`, `TextLink` (moved here from `components/add/`) |
+
+**Route guard:** `src/app/_layout.tsx` uses `<Stack.Protected guard={signedIn}>`. Logged out you can only reach
+`/login` and `/signup`; logging in/out switches screens automatically, no `router.push` needed.
+The splash screen stays up until the saved login is checked.
+
+**Bottom nav:** Home, Meals and Profile navigate (`router.replace`). Pantry still does nothing; add it to `TAB_ROUTES` in `BottomNavBar.tsx`.
+
+**New native module:** `expo-secure-store` (and `expo-splash-screen`, already part of Expo). Run
+`npx expo install expo-secure-store expo-splash-screen`, then add `"expo-secure-store"` to `plugins` in `app.json`,
+then make one more EAS build. Until then the app still works, but you must log in again every time you fully close it.
+
+**Scanner flashing:** every `takePictureAsync` plays a shutter flash. `ScanDateScreen` now sets `animateShutter={false}`
+and waits 1 s between pictures. JS-only change, so it shows up on the next reload.
+
+---
+
+## 10. Meals, recipes and the + menu (added Nov 3)
+
+**The + button** now lives inside `BottomNavBar` (`src/components/CreateMenuFab.tsx`), so it appears on Home, Meals and Profile.
+It opens *Add a Food* (then Scan barcode / Enter manually, the old menu) or *Add a Meal* (Create recipe).
+Home hides it while you are removing items (`showCreateButton={false}`). `AddItemFab.tsx` is gone.
+
+| File | Job |
+|---|---|
+| `src/app/meals.tsx`, `src/app/recipe/{_layout,new,[id]}.tsx` | Routes |
+| `src/screens/MealsScreen.tsx` | Meals list: search, filter button, meal rows |
+| `src/screens/recipes/CreateRecipeScreen.tsx` | Create recipe (Figma frame) |
+| `src/screens/recipes/RecipeDetailScreen.tsx` | Read a meal; pencil button toggles edit mode; "I cooked this" |
+| `src/features/recipes/useRecipeForm.ts` | All form state (title, ingredients, steps, photo) + what is missing |
+| `src/features/recipes/saveRecipe.ts` | Create/replace the meal, then upload/remove the photo |
+| `src/features/recipes/{filters,quantity,units,useIngredientSearch}.ts` | Filter/sort rules, "1/2" parsing, unit list, debounced ingredient search |
+| `src/components/recipes/*` | RecipeForm, IngredientsEditor, StepsEditor, PhotoPicker, UnitPicker, MealRow, MealFilterSheet, CookSheet |
+| `src/services/photoPicker.ts` | Wrapper for `expo-image-picker` (safe if the native module is missing) |
+
+**How meals and your stored items interact** (matching is done by the backend, by ingredient name, see `backend/app/services/pantry.py`):
+1. Every meal shows "3 of 5 ingredients in your kitchen" and a green "Ready to cook" tag when you have all of them.
+2. Meals that use food about to expire get a "Uses Spinach" tag and are sorted first. The Home carousel shows the best ones.
+3. The Meals filter button: Ready to cook only, Uses expiring food only, sort by Best match / Newest / A to Z.
+4. Inside a meal, each ingredient is checked off if it is in your kitchen.
+5. "I cooked this" lets you pick which stored items you used; each goes down by 1 (removed at 0), so Home stays accurate.
+6. Searching for an ingredient suggests your own stored items first, then common ingredients.
+
+**New native module:** `expo-image-picker` (meal photos). Run `npx expo install expo-image-picker`, add this to `plugins` in `app.json`
+`["expo-image-picker", { "photosPermission": "MiFoo uses your photos for meal pictures.", "cameraPermission": "MiFoo uses the camera to take meal pictures." }]`
+and make one EAS build together with `expo-secure-store`. Until then everything works except photos (the tile explains why).
+
+---
+
+## 11. Keyboard handling (added Nov 9)
+
+**Rule: any screen with text boxes uses `<KeyboardAwareScroll>` (`src/components/KeyboardAwareScroll.tsx`) instead of `<ScrollView>`.**
+It adds space under the content while the keyboard is open and scrolls just enough to keep the box you are typing in above the keyboard (also when you move to the next box, or a multi-line box grows).
+
+Why not `KeyboardAvoidingView`: with `behavior={undefined}` (which is what we had for Android) it does nothing. Used in: LoginScreen, SignUpScreen, CreateRecipeScreen, RecipeDetailScreen (edit mode), ManualEntryScreen, ReviewItemScreen.
+Pop-up sheets (`Modal`), such as the Edit profile sheet in `ProfileScreen.tsx`, have no scrolling list, so they use `<KeyboardAvoidingView behavior="padding">` instead.
+
+Tweak: `MARGIN_ABOVE_KEYBOARD` in `KeyboardAwareScroll.tsx` (gap between the box and the keyboard).
+
+---
+
+## 12. Expiration reminders (added Nov 10)
+
+**What:** phone notifications about food that is about to expire, scheduled **on the phone itself** (local notifications).
+No server, Firebase or Expo push service needed, and it works offline. Works in a development build (not Expo Go on Android for remote push, but local ones do not need that).
+
+**When** (all in `src/utils/reminders.ts`, easy to change):
+- 9:00 AM local time (`REMINDER_HOUR`), 3 days before, 1 day before, and on the day (`DAYS_BEFORE = [3, 1, 0]`)
+- items on the same day are combined into ONE notification ("Milk, Eggs and 2 more expire tomorrow")
+- produce with no date: one "Check your produce" reminder 5 days after it was added
+- at most 60 are scheduled (phones limit this), soonest first
+
+**How it stays correct:** `services/notifications.ts` cancels everything and schedules again whenever
+- Home loads, or you add / remove / cook (the item list changes) -> `HomeScreen.tsx`
+- the Push Notifications switch changes -> `ProfileScreen.tsx` (asks the phone for permission when turned ON)
+- you log out or the login expires -> `AuthContext.tsx` cancels them all
+
+**Setup (once):**
+1. `npx expo install expo-notifications`
+2. In `app.json` `plugins` add `["expo-notifications", { "color": "#2563EB", "defaultChannel": "expiry" }]`
+   (optional `"icon": "./assets/images/notification-icon.png"`: 96x96, all-white with transparent background; without it Android shows the app icon)
+3. New EAS build (`eas build --profile development --platform android`), install it
+4. Open Profile -> Notifications -> **Send a test notification**. It arrives in 5 seconds. Then leave the app and try again to see it on the lock screen.
+
+Until the new build, everything still runs; the reminders just do nothing (the Profile screen says so).
+
+**Good to know**
+- Android may deliver a few minutes late when the phone is in battery saver / Doze. That is normal for a 9 AM reminder.
+- If the user denies the permission, the switch explains how to allow it in phone settings.
+- Reminders are per phone. A second phone schedules its own when the app opens there.
+
+**Later: real push from the server** (needed only for reminders while the app was never opened, or sent to other phones):
+Android needs Firebase Cloud Messaging V1 credentials uploaded to EAS, the app saves its Expo push token in a new table, and a daily job on the backend
+calls the Expo push API. That job needs a scheduler where the backend is hosted, so decide it together with the hosting choice.
+
+
+## 13. Pantry, Home v2, Item Info and locations (added Nov 16)
+
+**New screens**
+- **Pantry tab** (`screens/PantryScreen.tsx`, route `app/pantry.tsx`): every stored item, most urgent first. Search box (name or kind of food), All / Fridge / Freezer / Pantry tabs, and the blue settings button (`components/items/ItemFilterSheet.tsx`): *Select items to remove*, *Needs attention* switch, *Kind of food* chips, sort (Expiring soonest / A to Z / Recently added).
+- **Home v2** (`screens/HomeScreen.tsx`): bell, recommended-meal carousel, location tabs, and the 6 most urgent items with "See all N items in Pantry". The bell opens the Pantry and shows a red dot when something is Urgent or Use soon. The old Manage mode is gone; removing now happens in the Pantry or on Item Info.
+- **Item Info** (`screens/ItemInfoScreen.tsx`, route `app/item/[id].tsx`): location, classification, expiring/stored time, quantity, dates, "Let's Cook It!" (saved meals that use this item, best pantry match first), and **Update** / **Remove** buttons.
+- **Meals**: new *Your Meals | Shared Meals* tabs (Shared says "coming soon", the future social page) and the "10/11 Pantry Match" chip on every meal (`PantryMatchChip` in `components/recipes/MealRow.tsx`).
+
+**Locations and classification**
+- Every item now has `location` (`fridge` | `freezer` | `pantry`, default pantry) and `classification` (free text such as "Ice Cream"). The add screens' *Food Items / Produce Items* buttons are replaced by a **Classification** field (quick-pick chips) and a **Stored in** Fridge/Freezer/Pantry toggle.
+- `category` (packaged / produce) still exists because the expiration rules depend on it, but it is no longer chosen by hand: classification "Produce" (also fruit, vegetables) means produce, which may skip the expiration date. Everything else needs a date. See `features/items/classification.ts`.
+- Old items keep working: they get location Pantry and show "Produce" or "Uncategorized" until you edit them.
+
+**Removing and updating**
+- *Remove* (Item Info, or Pantry -> settings -> Select items to remove) opens `components/items/RemoveItemsSheet.tsx`: a stepper per item that starts at the full quantity. Removing less lowers the quantity; removing all deletes the item. The backend does the math (`POST /items/{id}/remove`), so two phones cannot disagree.
+- *Update* opens the add-manually form filled with the item (`/add/manual?edit=<id>`), then returns to Item Info.
+
+**Look of a card** (`components/ItemRow.tsx`): border and text color follow the status (Urgent red, Use soon amber, Safe green). Fresh produce with no date (stored under 5 days) is plain gray with no badge, like the "Orange" card in Figma.
+
+**Where do I change...?**
+- Urgent / Use soon cutoffs: `utils/expiry.ts` (also `backend/app/services/pantry.py`)
+- The list of classification chips: `features/items/classification.ts`
+- What Home shows: `HOME_ITEM_LIMIT` at the top of `screens/HomeScreen.tsx`
+- Pantry sort and filter rules: `features/items/filters.ts`
+
+**Setup**
+1. Run `backend/sql/schema.sql` again in Supabase (adds the two columns; safe to re-run) BEFORE the new backend runs.
+2. Push the backend (Render redeploys). 
+3. Frontend: copy the files over; no new packages. Restart Metro with `npx expo start -c`. A standalone build needs a new `eas build` to include these screens.
+
+Removed files: `components/ItemSection.tsx`, `styles/itemSection.styles.ts`.
+
+### 13b. Fix: random "server error (500)" on Item Info (added Nov 17)
+- Item Info now opens instantly from the copy the list already has (`services/itemCache.ts`) and refreshes in the background. If the refresh fails it keeps the old details and shows an amber "tap to retry" bar instead of an error screen. With nothing cached it shows a spinner with "Loading item…".
+- Every read (GET) is retried up to 2 more times when the connection drops or the server answers 5xx (`services/api.ts`). Writes are never retried, so nothing can be added twice.
+- Backend: reads retry on dropped Supabase connections (`app/db/retry.py`), and a connection that stays down now answers **503** ("try again") instead of a bare 500. If you still see 500s, open Render -> your service -> **Logs**; the traceback right above the 500 line names the real cause.

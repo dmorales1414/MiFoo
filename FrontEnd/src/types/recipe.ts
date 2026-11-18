@@ -27,6 +27,7 @@ export interface RecipeSummary {
   ingredientsOwned: number; // ingredient lines found in the pantry
   canMakeNow: boolean; // every ingredient is in the pantry
   usesExpiringSoon: string[]; // names of pantry items this meal would use up
+  matchedItemIds: string[]; // ids of the stored items its ingredients match (Item Info screen)
 }
 
 export interface Recipe extends RecipeSummary {

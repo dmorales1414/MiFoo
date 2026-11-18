@@ -127,7 +127,6 @@ export function RecommendedMealCarousel({
           useNativeDriver: true,
         })}
       />
-      <Text style={styles.label}>{label}</Text>
     </View>
   );
 }

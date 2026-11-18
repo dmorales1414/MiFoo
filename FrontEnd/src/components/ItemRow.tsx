@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
+import { LOCATION_LABELS } from '../features/items/locations';
 import { styles } from '../styles/itemRow.styles';
 import { colors, statusColors } from '../styles/theme';
 import type { Item } from '../types/item';
@@ -9,27 +10,29 @@ import { StatusBadge } from './StatusBadge';
 
 interface ItemRowProps {
   item: Item;
-  selectable: boolean; // true while the section is in "Manage" mode
-  selected: boolean;
-  onPress: (id: string) => void;
+  onPress: (item: Item) => void; // open Item Info, or tick the box while selecting
+  selectable?: boolean; // true while the Pantry is in "select items to remove" mode
+  selected?: boolean;
 }
 
-// One food item: icon (or checkbox in manage mode), name, date line, status badge.
-export function ItemRow({ item, selectable, selected, onPress }: ItemRowProps) {
+// One stored item as a card: icon (or checkbox when selecting), name, how long is left,
+// a status badge, and where it is kept. The border color follows the status.
+export function ItemRow({ item, onPress, selectable = false, selected = false }: ItemRowProps) {
   // Packaged items go by their expiration date. Produce without a date goes by days stored
   // (see getItemDisplay in utils/expiry.ts).
   const { status, subtitle } = getItemDisplay(item);
-
+  const palette = statusColors[status];
   const iconName = item.category === 'produce' ? 'leaf-outline' : 'restaurant-outline';
+  // Red/amber/green text for items with a status; gray for fresh produce.
+  const metaColor = status === 'none' ? colors.textSecondary : palette.badgeText;
 
   return (
     <Pressable
-      // Rows are only tappable in manage mode; otherwise they are display-only for now.
-      disabled={!selectable}
-      onPress={() => onPress(item.id)}
-      accessibilityRole={selectable ? 'checkbox' : undefined}
+      onPress={() => onPress(item)}
+      accessibilityRole={selectable ? 'checkbox' : 'button'}
       accessibilityState={selectable ? { checked: selected } : undefined}
-      style={[styles.row, { borderColor: statusColors[status].border }]}
+      accessibilityLabel={`${item.itemName}, ${subtitle}, ${LOCATION_LABELS[item.location]}`}
+      style={[styles.row, { borderColor: palette.border }]}
     >
       {selectable ? (
         <View style={[styles.checkbox, selected ? styles.checkboxChecked : styles.checkboxUnchecked]}>
@@ -44,16 +47,24 @@ export function ItemRow({ item, selectable, selected, onPress }: ItemRowProps) {
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
           {item.itemName}
+          {item.quantity > 1 ? <Text style={styles.quantity}>{`  ×${item.quantity}`}</Text> : null}
         </Text>
         <View style={styles.metaRow}>
-          <Ionicons name={item.expirationDate ? 'calendar-outline' : 'time-outline'} size={14} color={colors.textSecondary} />
-          <Text style={styles.metaText} numberOfLines={1}>
+          <Ionicons
+            name={item.expirationDate ? 'calendar-outline' : 'time-outline'}
+            size={14}
+            color={metaColor}
+          />
+          <Text style={[styles.metaText, { color: metaColor }]} numberOfLines={1}>
             {subtitle}
           </Text>
         </View>
       </View>
 
-      <StatusBadge status={status} />
+      <View style={styles.trailing}>
+        {status !== 'none' ? <StatusBadge status={status} /> : null}
+        <Text style={styles.location}>{LOCATION_LABELS[item.location]}</Text>
+      </View>
     </Pressable>
   );
 }

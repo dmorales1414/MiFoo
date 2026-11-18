@@ -47,3 +47,17 @@ def test_recommended_order():
         s("new-complete", 3, 3, [], "2026-10-20"),
     ])
     assert [r["title"] for r in out] == ["uses-spinach", "new-complete", "old-complete"]
+
+
+def test_annotate_lists_matched_item_ids():
+    from app.services.pantry import annotate
+    items = [
+        {"id": "a", "item_name": "Lemons", "quantity": 1, "category": "produce", "expiration_date": "2026-12-01"},
+        {"id": "b", "item_name": "Butter", "quantity": 1, "category": "packaged", "expiration_date": "2026-12-01"},
+    ]
+    rows = [
+        {"id": "r1", "name": "lemon", "quantity": 1, "unit": None, "position": 0},
+        {"id": "r2", "name": "flour", "quantity": 2, "unit": "cup", "position": 1},
+    ]
+    out = annotate({"id": "x", "title": "T", "created_at": "2026-10-01"}, rows, items, TODAY)
+    assert out["matched_item_ids"] == ["a"]

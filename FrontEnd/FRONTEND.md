@@ -435,3 +435,41 @@ Until the new build, everything still runs; the reminders just do nothing (the P
 **Later: real push from the server** (needed only for reminders while the app was never opened, or sent to other phones):
 Android needs Firebase Cloud Messaging V1 credentials uploaded to EAS, the app saves its Expo push token in a new table, and a daily job on the backend
 calls the Expo push API. That job needs a scheduler where the backend is hosted, so decide it together with the hosting choice.
+
+
+## 13. Pantry, Home v2, Item Info and locations (added Nov 16)
+
+**New screens**
+- **Pantry tab** (`screens/PantryScreen.tsx`, route `app/pantry.tsx`): every stored item, most urgent first. Search box (name or kind of food), All / Fridge / Freezer / Pantry tabs, and the blue settings button (`components/items/ItemFilterSheet.tsx`): *Select items to remove*, *Needs attention* switch, *Kind of food* chips, sort (Expiring soonest / A to Z / Recently added).
+- **Home v2** (`screens/HomeScreen.tsx`): bell, recommended-meal carousel, location tabs, and the 6 most urgent items with "See all N items in Pantry". The bell opens the Pantry and shows a red dot when something is Urgent or Use soon. The old Manage mode is gone; removing now happens in the Pantry or on Item Info.
+- **Item Info** (`screens/ItemInfoScreen.tsx`, route `app/item/[id].tsx`): location, classification, expiring/stored time, quantity, dates, "Let's Cook It!" (saved meals that use this item, best pantry match first), and **Update** / **Remove** buttons.
+- **Meals**: new *Your Meals | Shared Meals* tabs (Shared says "coming soon", the future social page) and the "10/11 Pantry Match" chip on every meal (`PantryMatchChip` in `components/recipes/MealRow.tsx`).
+
+**Locations and classification**
+- Every item now has `location` (`fridge` | `freezer` | `pantry`, default pantry) and `classification` (free text such as "Ice Cream"). The add screens' *Food Items / Produce Items* buttons are replaced by a **Classification** field (quick-pick chips) and a **Stored in** Fridge/Freezer/Pantry toggle.
+- `category` (packaged / produce) still exists because the expiration rules depend on it, but it is no longer chosen by hand: classification "Produce" (also fruit, vegetables) means produce, which may skip the expiration date. Everything else needs a date. See `features/items/classification.ts`.
+- Old items keep working: they get location Pantry and show "Produce" or "Uncategorized" until you edit them.
+
+**Removing and updating**
+- *Remove* (Item Info, or Pantry -> settings -> Select items to remove) opens `components/items/RemoveItemsSheet.tsx`: a stepper per item that starts at the full quantity. Removing less lowers the quantity; removing all deletes the item. The backend does the math (`POST /items/{id}/remove`), so two phones cannot disagree.
+- *Update* opens the add-manually form filled with the item (`/add/manual?edit=<id>`), then returns to Item Info.
+
+**Look of a card** (`components/ItemRow.tsx`): border and text color follow the status (Urgent red, Use soon amber, Safe green). Fresh produce with no date (stored under 5 days) is plain gray with no badge, like the "Orange" card in Figma.
+
+**Where do I change...?**
+- Urgent / Use soon cutoffs: `utils/expiry.ts` (also `backend/app/services/pantry.py`)
+- The list of classification chips: `features/items/classification.ts`
+- What Home shows: `HOME_ITEM_LIMIT` at the top of `screens/HomeScreen.tsx`
+- Pantry sort and filter rules: `features/items/filters.ts`
+
+**Setup**
+1. Run `backend/sql/schema.sql` again in Supabase (adds the two columns; safe to re-run) BEFORE the new backend runs.
+2. Push the backend (Render redeploys). 
+3. Frontend: copy the files over; no new packages. Restart Metro with `npx expo start -c`. A standalone build needs a new `eas build` to include these screens.
+
+Removed files: `components/ItemSection.tsx`, `styles/itemSection.styles.ts`.
+
+### 13b. Fix: random "server error (500)" on Item Info (added Nov 17)
+- Item Info now opens instantly from the copy the list already has (`services/itemCache.ts`) and refreshes in the background. If the refresh fails it keeps the old details and shows an amber "tap to retry" bar instead of an error screen. With nothing cached it shows a spinner with "Loading item…".
+- Every read (GET) is retried up to 2 more times when the connection drops or the server answers 5xx (`services/api.ts`). Writes are never retried, so nothing can be added twice.
+- Backend: reads retry on dropped Supabase connections (`app/db/retry.py`), and a connection that stays down now answers **503** ("try again") instead of a bare 500. If you still see 500s, open Render -> your service -> **Logs**; the traceback right above the 500 line names the real cause.

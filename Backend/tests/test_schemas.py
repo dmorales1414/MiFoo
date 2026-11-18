@@ -40,9 +40,11 @@ def test_item_from_database_row_serializes_to_camelcase():
         "id": str(uuid4()), "user_id": str(uuid4()), "item_name": "Spinach",
         "category": "produce", "expiration_date": None,
         "date_added": "2026-10-21T10:00:00+00:00", "quantity": 1,
+        "location": "fridge", "classification": "Produce",
     }
     out = Item.model_validate(row).model_dump(mode="json", by_alias=True)
-    assert set(out) == {"id", "userId", "itemName", "category", "expirationDate", "dateAdded", "quantity"}
+    assert set(out) == {"id", "userId", "itemName", "category", "expirationDate", "dateAdded", "quantity",
+                       "location", "classification"}
 
 
 def test_update_is_partial():

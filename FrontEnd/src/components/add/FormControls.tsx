@@ -3,10 +3,17 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useState, type ReactNode } from 'react';
 import { Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
 
-import { MAX_NAME_LENGTH, MAX_QUANTITY, MIN_QUANTITY } from '../../features/addItem/validation';
+import {
+  MAX_CLASSIFICATION_LENGTH,
+  MAX_NAME_LENGTH,
+  MAX_QUANTITY,
+  MIN_QUANTITY,
+} from '../../features/addItem/validation';
+import { CLASSIFICATION_SUGGESTIONS } from '../../features/items/classification';
+import { LOCATIONS } from '../../features/items/locations';
 import { styles } from '../../styles/add/formControls.styles';
 import { colors } from '../../styles/theme';
-import type { ItemCategory } from '../../types/item';
+import type { ItemLocation } from '../../types/item';
 import { formatLongDate, parseISODate, toISODate } from '../../utils/expiry';
 
 // ---- FormField: label (+ small tag such as "From barcode") + control + error -------------
@@ -156,26 +163,17 @@ export function QuantityStepper({ value, onChange }: { value: number; onChange: 
   );
 }
 
-// ---- CategoryToggle: Food Items | Produce Items (maps to category packaged | produce) ------
-export const CATEGORY_LABELS: Record<ItemCategory, string> = {
-  packaged: 'Food Items',
-  produce: 'Produce Items',
-};
-
-export function CategoryToggle({
+// ---- LocationToggle: Fridge | Freezer | Pantry (where the item is kept) ------------------
+export function LocationToggle({
   value,
   onChange,
 }: {
-  value: ItemCategory;
-  onChange: (category: ItemCategory) => void;
+  value: ItemLocation;
+  onChange: (location: ItemLocation) => void;
 }) {
-  const options: { key: ItemCategory; icon: 'restaurant-outline' | 'leaf-outline' }[] = [
-    { key: 'packaged', icon: 'restaurant-outline' },
-    { key: 'produce', icon: 'leaf-outline' },
-  ];
   return (
     <View style={styles.toggle}>
-      {options.map(({ key, icon }) => {
+      {LOCATIONS.map(({ key, label, icon }) => {
         const selected = value === key;
         return (
           <Pressable
@@ -186,10 +184,55 @@ export function CategoryToggle({
             accessibilityState={{ selected }}
           >
             <Ionicons name={icon} size={16} color={selected ? colors.primary : colors.textSecondary} />
-            <Text style={[styles.toggleLabel, selected && styles.toggleLabelSelected]}>{CATEGORY_LABELS[key]}</Text>
+            <Text style={[styles.toggleLabel, selected && styles.toggleLabelSelected]}>{label}</Text>
           </Pressable>
         );
       })}
+    </View>
+  );
+}
+
+// ---- ClassificationField: a text box plus quick-pick chips ("Produce", "Dairy", ...) -------
+// Typing anything is fine; "Produce" is the special one (it may skip the expiration date).
+export function ClassificationField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (classification: string) => void;
+}) {
+  const current = value.trim().toLowerCase();
+  return (
+    <View style={{ gap: 10 }}>
+      <View style={styles.input}>
+        <TextInput
+          style={styles.inputText}
+          value={value}
+          onChangeText={onChange}
+          placeholder="e.g. Ice Cream"
+          placeholderTextColor={colors.textPlaceholder}
+          maxLength={MAX_CLASSIFICATION_LENGTH}
+          autoCapitalize="words"
+          returnKeyType="done"
+        />
+        <Ionicons name="create-outline" size={18} color={colors.textSecondary} />
+      </View>
+      <View style={styles.chipRow}>
+        {CLASSIFICATION_SUGGESTIONS.map((label) => {
+          const selected = current === label.toLowerCase();
+          return (
+            <Pressable
+              key={label}
+              style={[styles.chip, selected && styles.chipSelected]}
+              onPress={() => onChange(selected ? '' : label)}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+            >
+              <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>{label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }

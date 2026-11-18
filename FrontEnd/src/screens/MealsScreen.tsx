@@ -7,18 +7,27 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { MealFilterSheet } from '../components/recipes/MealFilterSheet';
 import { MealRow } from '../components/recipes/MealRow';
+import { SegmentedTabs } from '../components/SegmentedTabs';
 import { applyFilters, DEFAULT_FILTERS, filtersActive, type MealFilters } from '../features/recipes/filters';
 import { useRecipes } from '../hooks/useRecipes';
 import { styles } from '../styles/recipes/meals.styles';
 import { colors, layout, spacing } from '../styles/theme';
 
 // The Meals tab: every recipe you saved. Tap one to read it; the + button creates a new one.
+type MealsTab = 'yours' | 'shared';
+const MEALS_TABS: { key: MealsTab; label: string }[] = [
+  { key: 'yours', label: 'Your Meals' },
+  { key: 'shared', label: 'Shared Meals' },
+];
+
 export default function MealsScreen() {
   const insets = useSafeAreaInsets();
   const { recipes, loaded, refreshing, error, refresh } = useRecipes();
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<MealFilters>(DEFAULT_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
+  // "Shared Meals" is the future social page. For now it only says it is coming.
+  const [tab, setTab] = useState<MealsTab>('yours');
 
   // Reload every time the tab is shown (a meal may have been created, edited or cooked).
   useFocusEffect(
@@ -31,7 +40,15 @@ export default function MealsScreen() {
   const navBottom = insets.bottom + layout.navBarBottomGap;
   const hasFilters = filtersActive(filters) || search.trim().length > 0;
 
-  const empty = !loaded ? (
+  const empty = tab === 'shared' ? (
+    <View style={styles.emptyBox}>
+      <Ionicons name="people-outline" size={40} color={colors.textPlaceholder} />
+      <Text style={styles.emptyTitle}>Shared meals are coming soon</Text>
+      <Text style={styles.emptyText}>
+        Soon you will be able to share your recipes with other MiFoo users and browse theirs here.
+      </Text>
+    </View>
+  ) : !loaded ? (
     <View style={styles.emptyBox}>
       <ActivityIndicator color={colors.primary} />
     </View>
@@ -53,7 +70,7 @@ export default function MealsScreen() {
   return (
     <View style={styles.screen}>
       <FlatList
-        data={visible}
+        data={tab === 'yours' ? visible : []}
         keyExtractor={(r) => r.id}
         renderItem={({ item }) => <MealRow recipe={item} />}
         ListEmptyComponent={empty}
@@ -98,7 +115,8 @@ export default function MealsScreen() {
                 {filtersActive(filters) ? <View style={styles.filterDot} /> : null}
               </Pressable>
             </View>
-            {error ? (
+            <SegmentedTabs options={MEALS_TABS} value={tab} onChange={setTab} />
+            {error && tab === 'yours' ? (
               <View style={styles.banner}>
                 <Text style={styles.bannerText}>
                   {recipes.length > 0 ? 'Showing your last loaded meals. ' : ''}

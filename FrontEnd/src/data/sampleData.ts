@@ -11,12 +11,14 @@ function daysFromNow(days: number): string {
 }
 
 export const sampleItems: Item[] = [
-  { id: '1', itemName: 'Whole Wheat Pasta', category: 'packaged', expirationDate: daysFromNow(7), dateAdded: daysFromNow(-20), quantity: 1 },
-  { id: '2', itemName: 'Greek Yogurt', category: 'packaged', expirationDate: daysFromNow(4), dateAdded: daysFromNow(-5), quantity: 2 },
-  { id: '3', itemName: 'Chicken Breast', category: 'packaged', expirationDate: daysFromNow(3), dateAdded: daysFromNow(-2), quantity: 1 },
-  { id: '4', itemName: 'Baby Spinach', category: 'produce', expirationDate: daysFromNow(2), dateAdded: daysFromNow(-4), quantity: 1 },
-  { id: '5', itemName: 'Red Apples', category: 'produce', expirationDate: daysFromNow(6), dateAdded: daysFromNow(-1), quantity: 6 },
-  { id: '6', itemName: 'Avocados', category: 'produce', expirationDate: daysFromNow(3), dateAdded: daysFromNow(-3), quantity: 3 },
+  { id: '1', itemName: 'Whole Wheat Pasta', category: 'packaged', expirationDate: daysFromNow(7), dateAdded: daysFromNow(-20), quantity: 1, location: 'pantry', classification: 'Grains' },
+  { id: '2', itemName: 'Greek Yogurt', category: 'packaged', expirationDate: daysFromNow(4), dateAdded: daysFromNow(-5), quantity: 2, location: 'fridge', classification: 'Dairy' },
+  { id: '3', itemName: 'Chicken Breast', category: 'packaged', expirationDate: daysFromNow(3), dateAdded: daysFromNow(-2), quantity: 1, location: 'fridge', classification: 'Meat' },
+  { id: '4', itemName: 'Baby Spinach', category: 'produce', expirationDate: daysFromNow(2), dateAdded: daysFromNow(-4), quantity: 1, location: 'fridge', classification: 'Produce' },
+  { id: '5', itemName: 'Red Apples', category: 'produce', expirationDate: daysFromNow(6), dateAdded: daysFromNow(-1), quantity: 6, location: 'fridge', classification: 'Produce' },
+  { id: '6', itemName: 'Avocados', category: 'produce', expirationDate: daysFromNow(3), dateAdded: daysFromNow(-3), quantity: 3, location: 'pantry', classification: 'Produce' },
+  { id: '7', itemName: 'Vanilla Ice Cream', category: 'packaged', expirationDate: daysFromNow(2), dateAdded: daysFromNow(-10), quantity: 2, location: 'freezer', classification: 'Ice Cream' },
+  { id: '8', itemName: 'Oranges', category: 'produce', expirationDate: null, dateAdded: daysFromNow(-2), quantity: 5, location: 'pantry', classification: 'Produce' },
 ];
 
 // No images yet: the carousel shows gray placeholders until you add some.

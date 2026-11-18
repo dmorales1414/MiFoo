@@ -3,6 +3,9 @@ import type { ImageSourcePropType } from 'react-native';
 // Mirrors the Item class in the UML class diagram.
 export type ItemCategory = 'packaged' | 'produce';
 
+// Where the item is kept: the Fridge / Freezer / Pantry tabs.
+export type ItemLocation = 'fridge' | 'freezer' | 'pantry';
+
 export interface Item {
   id: string;
   itemName: string;
@@ -13,6 +16,10 @@ export interface Item {
   // The backend sends a full timestamp ('2026-10-21T10:00:00+00:00'); sample data uses 'YYYY-MM-DD'.
   dateAdded: string;
   quantity: number;
+  location: ItemLocation;
+  // What kind of food it is, in the user's words ("Ice Cream", "Produce"). null for items
+  // added before classifications existed; the app shows a fallback label.
+  classification: string | null;
 }
 
 export type ExpiryStatus = 'safe' | 'useSoon' | 'urgent';
@@ -32,4 +39,15 @@ export interface NewItem {
   category: ItemCategory;
   expirationDate: string | null;
   quantity: number;
+  location: ItemLocation;
+  classification: string | null;
+}
+
+// What the app sends to change an item (PATCH /items/{id}). Only the fields that changed.
+export type ItemChanges = Partial<NewItem>;
+
+// What POST /items/{id}/remove returns: `removed` is true when nothing was left (item deleted).
+export interface RemoveResult {
+  removed: boolean;
+  item: Item | null;
 }

@@ -1,3 +1,4 @@
+import httpx
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -20,6 +21,15 @@ app.add_middleware(
 async def auth_failure_handler(_request: Request, exc: AuthFailure):
     headers = {"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=headers)
+
+
+@app.exception_handler(httpx.TransportError)
+async def database_unreachable_handler(_request: Request, exc: httpx.TransportError):
+    """Any route that loses its connection to Supabase answers 503 ("try again") instead of a bare 500."""
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "The database could not be reached. Please try again in a moment."},
+    )
 
 
 @app.get("/", include_in_schema=False)
