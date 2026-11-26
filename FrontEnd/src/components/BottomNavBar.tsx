@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { useRouter } from 'expo-router';
@@ -12,10 +13,11 @@ export type TabKey = 'home' | 'meals' | 'pantry' | 'profile';
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
 const TABS: { key: TabKey; label: string; icon: IconName; activeIcon: IconName }[] = [
+  // Home = house, Meals = plate with fork and knife, Pantry = storage basket, Profile = person.
   { key: 'home', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
-  { key: 'meals', label: 'Meals', icon: 'calendar-outline', activeIcon: 'calendar' },
-  { key: 'pantry', label: 'Pantry', icon: 'cart-outline', activeIcon: 'cart' },
-  { key: 'profile', label: 'Profile', icon: 'person-outline', activeIcon: 'person' },
+  { key: 'meals', label: 'Meals', icon: 'restaurant-outline', activeIcon: 'restaurant' },
+  { key: 'pantry', label: 'Pantry', icon: 'basket-outline', activeIcon: 'basket' },
+  { key: 'profile', label: 'Profile', icon: 'person-circle-outline', activeIcon: 'person-circle' },
 ];
 
 interface BottomNavBarProps {

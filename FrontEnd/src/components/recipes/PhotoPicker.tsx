@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { Alert, Image, Pressable, Text, View } from 'react-native';
 
@@ -65,7 +66,7 @@ export function PhotoPicker({ photo, onChange }: Props) {
         </>
       ) : (
         <View style={{ alignItems: 'center' }}>
-          <Ionicons name="camera-outline" size={26} color={colors.primary} />
+          <Ionicons name="camera-outline" size={26} color={colors.primaryText} />
           <Text style={styles.photoLabel}>Add photo</Text>
           <Text style={styles.photoOptional}>Optional</Text>
         </View>

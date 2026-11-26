@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing, statusColors } from '../theme';
+import { colors, radii, spacing, statusColors, themedStyles } from '../theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.xl, gap: spacing.lg },
   title: { fontSize: 32, fontWeight: '800', color: colors.textPrimary, marginTop: spacing.xl },
@@ -69,13 +69,13 @@ export const styles = StyleSheet.create({
   emptyBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl * 2 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
   emptyText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', paddingHorizontal: spacing.xl },
-  banner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: '#FEF3C7' },
-  bannerText: { fontSize: 13, color: '#92400E' },
+  banner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: colors.warningSoft },
+  bannerText: { fontSize: 13, color: colors.warningSoftText },
 
   // filter sheet
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     padding: spacing.xxl,
@@ -115,12 +115,12 @@ export const styles = StyleSheet.create({
   ingredientText: { flex: 1 },
   ingredientLine: { fontSize: 16, color: colors.textPrimary },
   ingredientSub: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  ingredientSubSoon: { color: statusColors.useSoon.badgeText },
+  ingredientSubSoon: { color: statusColors.useSoon.metaText },
   stepRow: { flexDirection: 'row', gap: spacing.md },
   stepNumber: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, minWidth: 24 },
   stepText: { flex: 1, fontSize: 16, lineHeight: 23, color: colors.textPrimary },
   deleteLink: { alignItems: 'center', paddingVertical: spacing.md },
-  deleteText: { fontSize: 15, fontWeight: '700', color: colors.danger },
+  deleteText: { fontSize: 15, fontWeight: '700', color: colors.dangerText },
 
   // cook sheet items
   checkbox: {
@@ -154,4 +154,4 @@ export const styles = StyleSheet.create({
   },
   stepperButtonDisabled: { opacity: 0.4 },
   stepperValue: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
-});
+}));

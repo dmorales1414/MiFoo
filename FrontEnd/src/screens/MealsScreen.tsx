@@ -12,6 +12,7 @@ import { applyFilters, DEFAULT_FILTERS, filtersActive, type MealFilters } from '
 import { useRecipes } from '../hooks/useRecipes';
 import { styles } from '../styles/recipes/meals.styles';
 import { colors, layout, spacing } from '../styles/theme';
+import { useTheme } from '../features/theme/ThemeContext';
 
 // The Meals tab: every recipe you saved. Tap one to read it; the + button creates a new one.
 type MealsTab = 'yours' | 'shared';
@@ -21,6 +22,7 @@ const MEALS_TABS: { key: MealsTab; label: string }[] = [
 ];
 
 export default function MealsScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const { recipes, loaded, refreshing, error, refresh } = useRecipes();
   const [search, setSearch] = useState('');
@@ -50,7 +52,7 @@ export default function MealsScreen() {
     </View>
   ) : !loaded ? (
     <View style={styles.emptyBox}>
-      <ActivityIndicator color={colors.primary} />
+      <ActivityIndicator color={colors.primaryText} />
     </View>
   ) : recipes.length === 0 ? (
     <View style={styles.emptyBox}>
@@ -92,12 +94,12 @@ export default function MealsScreen() {
                   style={styles.searchInput}
                   value={search}
                   onChangeText={setSearch}
-                  placeholder="Search meals"
+                  placeholder="Search Meals"
                   placeholderTextColor={colors.textPlaceholder}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="search"
-                  accessibilityLabel="Search meals"
+                  accessibilityLabel="Search Meals"
                 />
                 {search ? (
                   <Pressable onPress={() => setSearch('')} hitSlop={8} accessibilityLabel="Clear search">
@@ -111,7 +113,7 @@ export default function MealsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Filter and sort meals"
               >
-                <Ionicons name="options-outline" size={22} color={colors.primary} />
+                <Ionicons name="options-outline" size={22} color={colors.primaryText} />
                 {filtersActive(filters) ? <View style={styles.filterDot} /> : null}
               </Pressable>
             </View>

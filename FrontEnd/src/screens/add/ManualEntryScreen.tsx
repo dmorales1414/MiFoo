@@ -23,11 +23,13 @@ import { LOCATION_LABELS } from '../../features/items/locations';
 import { fetchItem } from '../../services/api';
 import { styles } from '../../styles/add/addScreen.styles';
 import { colors, spacing } from '../../styles/theme';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 // Figma: "Add manually". For produce, homemade food, or anything without a barcode.
 // Opened with ?edit=<item id> (the Update button on Item Info), the same form changes a stored
 // item instead.
 export default function ManualEntryScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const { edit } = useLocalSearchParams<{ edit?: string }>();
   const { draft, update, reset, startFromItem } = useAddItem();
@@ -80,7 +82,7 @@ export default function ManualEntryScreen() {
               <TextLink label="Try again" onPress={load} />
             </>
           ) : (
-            <ActivityIndicator color={colors.primary} />
+            <ActivityIndicator color={colors.primaryText} />
           )}
         </View>
       </View>

@@ -16,6 +16,7 @@ import { styles } from '../../styles/add/addScreen.styles';
 import { colors, spacing } from '../../styles/theme';
 import { formatLongDate } from '../../utils/expiry';
 import { parseExpirationDate } from '../../utils/parseExpirationDate';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 const FRAME_PAUSE_MS = 1000; // wait between pictures so the phone is not working non-stop
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -23,6 +24,7 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 // Step 2 of 3 (Figma: "Scan expiration date"). Takes a picture about once a second, reads
 // the text in it on the phone (no internet needed) and looks for a date.
 export default function ScanDateScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const { draft, setScannedDate, update } = useAddItem();
   const [permission, requestPermission] = useCameraPermissions();

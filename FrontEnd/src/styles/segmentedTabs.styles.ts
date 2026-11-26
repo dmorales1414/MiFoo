@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from './theme';
+import { colors, radii, spacing, themedStyles } from './theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   track: {
     flexDirection: 'row',
     backgroundColor: colors.field,
@@ -31,4 +31,4 @@ export const styles = StyleSheet.create({
   },
   label: { fontSize: 14, fontWeight: '500', color: colors.textPrimary },
   labelSelected: { fontWeight: '700' },
-});
+}));

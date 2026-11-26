@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
@@ -87,7 +88,7 @@ export function RemoveItemsSheet({ visible, items, busy = false, onClose, onConf
                       accessibilityRole="button"
                       accessibilityLabel={`Remove more ${item.itemName}`}
                     >
-                      <Ionicons name="add" size={20} color={colors.primary} />
+                      <Ionicons name="add" size={20} color={colors.primaryText} />
                     </Pressable>
                   </View>
                 </View>

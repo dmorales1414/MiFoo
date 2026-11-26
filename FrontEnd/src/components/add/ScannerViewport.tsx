@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Easing, Pressable, Text, View } from 'react-native';

@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from './theme';
+import { colors, radii, spacing, themedStyles } from './theme';
 
 // Top and bottom padding depend on the device's safe area (notch, gesture bar),
 // so HomeScreen.tsx adds those inline.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
@@ -37,9 +37,9 @@ export const styles = StyleSheet.create({
     marginTop: spacing.lg,
     padding: spacing.md,
     borderRadius: 12,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.warningSoft,
   },
-  offlineText: { fontSize: 12, lineHeight: 17, color: '#92400E' },
+  offlineText: { fontSize: 12, lineHeight: 17, color: colors.warningSoftText },
   tabsWrap: { paddingHorizontal: spacing.xl, marginTop: spacing.lg },
   list: {
     paddingHorizontal: spacing.xl,
@@ -55,5 +55,5 @@ export const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     borderRadius: radii.pill,
   },
-  seeAllText: { fontSize: 15, fontWeight: '700', color: colors.primary },
-});
+  seeAllText: { fontSize: 15, fontWeight: '700', color: colors.primaryText },
+}));

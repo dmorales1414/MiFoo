@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from '../theme';
+import { colors, radii, spacing, themedStyles } from '../theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   // ---- header (back chip + close) ----
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backChip: {
@@ -36,7 +36,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  requiredText: { fontSize: 12, fontWeight: '700', color: colors.primary },
+  requiredText: { fontSize: 12, fontWeight: '700', color: colors.primaryText },
 
   // ---- photo + title row ----
   topRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   photoImage: { width: '100%', height: '100%' },
-  photoLabel: { fontSize: 13, fontWeight: '700', color: colors.primary, marginTop: 4 },
+  photoLabel: { fontSize: 13, fontWeight: '700', color: colors.primaryText, marginTop: 4 },
   photoOptional: { fontSize: 11, color: colors.textSecondary },
   photoRemove: {
     position: 'absolute',
@@ -169,12 +169,12 @@ export const styles = StyleSheet.create({
 
   // ---- footer ----
   footerHint: { fontSize: 13, color: colors.textSecondary, textAlign: 'center' },
-  errorText: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+  errorText: { fontSize: 14, color: colors.dangerText, textAlign: 'center' },
 
   // ---- unit picker sheet ----
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     padding: spacing.xl,
@@ -191,4 +191,4 @@ export const styles = StyleSheet.create({
   },
   unitRowSelected: { backgroundColor: colors.primarySoft },
   unitRowText: { fontSize: 16, color: colors.textPrimary },
-});
+}));

@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
@@ -107,7 +108,7 @@ export function IngredientsEditor({ form }: { form: RecipeForm }) {
             {s.note ? <Text style={styles.suggestionNote}>{s.note}</Text> : null}
           </View>
           <View style={styles.addCircle}>
-            <Ionicons name="add" size={20} color={colors.primary} />
+            <Ionicons name="add" size={20} color={colors.primaryText} />
           </View>
         </Pressable>
       ))}
@@ -124,7 +125,7 @@ export function IngredientsEditor({ form }: { form: RecipeForm }) {
             <Text style={styles.suggestionNote}>Use your own ingredient</Text>
           </View>
           <View style={styles.addCircle}>
-            <Ionicons name="add" size={20} color={colors.primary} />
+            <Ionicons name="add" size={20} color={colors.primaryText} />
           </View>
         </Pressable>
       ) : null}

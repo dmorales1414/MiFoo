@@ -24,9 +24,11 @@ import { LOCATION_LABELS } from '../../features/items/locations';
 import { styles } from '../../styles/add/addScreen.styles';
 import { colors, spacing } from '../../styles/theme';
 import { daysUntil, formatUntilExpiration } from '../../utils/expiry';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 // Step 3 of 3 (Figma: "Review & add item"). Everything found so far, editable, then saved.
 export default function ReviewItemScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const { draft, update } = useAddItem();
   const { submit, submitting, valid, errors } = useSubmitItem();

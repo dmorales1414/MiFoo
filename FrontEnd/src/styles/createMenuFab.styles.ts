@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
-import { colors, layout, radii, shadows, spacing } from './theme';
+import { colors, layout, radii, shadows, spacing, themedStyles } from './theme';
 
 // Positions depend on the device's safe area, so CreateMenuFab.tsx sets "bottom" inline.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject, // invisible layer: tapping it closes the menu
     backgroundColor: 'rgba(0, 0, 0, 0.12)',
@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
   popover: {
     width: '84%',
     maxWidth: 340,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderRadius: radii.xl,
     padding: spacing.md,
     gap: spacing.sm,
@@ -68,4 +68,4 @@ export const styles = StyleSheet.create({
   optionText: { flex: 1 },
   optionTitle: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
   optionSubtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
-});
+}));

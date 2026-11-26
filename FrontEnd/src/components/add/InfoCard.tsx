@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
@@ -17,7 +18,7 @@ interface InfoCardProps {
 export function InfoCard({ icon, title, body, tone = 'neutral' }: InfoCardProps) {
   return (
     <View style={[styles.card, tone === 'blue' && styles.blue]}>
-      <Ionicons name={icon} size={20} color={tone === 'blue' ? colors.primary : colors.textSecondary} />
+      <Ionicons name={icon} size={20} color={tone === 'blue' ? colors.primaryText : colors.textSecondary} />
       <View style={styles.text}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.body}>{body}</Text>

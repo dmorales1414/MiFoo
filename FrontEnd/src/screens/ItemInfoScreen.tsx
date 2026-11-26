@@ -17,6 +17,7 @@ import { styles } from '../styles/itemInfo.styles';
 import { colors, spacing, statusColors } from '../styles/theme';
 import type { Item } from '../types/item';
 import { daysSince, formatLongDate, getItemDisplay } from '../utils/expiry';
+import { useTheme } from '../features/theme/ThemeContext';
 
 // "January 5, 2026" from the full timestamp the backend sends.
 function formatAdded(dateAdded: string): string {
@@ -26,6 +27,7 @@ function formatAdded(dateAdded: string): string {
 // Item Info (Figma: "Item Info"): everything about one stored item, the meals you could cook
 // with it, and the Update / Remove buttons.
 export default function ItemInfoScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { recipes, refresh: refreshRecipes } = useRecipes();
@@ -116,7 +118,7 @@ export default function ItemInfoScreen() {
             </>
           ) : (
             <>
-              <ActivityIndicator color={colors.primary} />
+              <ActivityIndicator color={colors.primaryText} />
               <Text style={styles.errorText}>Loading item…</Text>
             </>
           )}
@@ -127,7 +129,7 @@ export default function ItemInfoScreen() {
 
   const display = getItemDisplay(item);
   const palette = statusColors[display.status];
-  const statColor = display.status === 'none' ? colors.textPrimary : palette.badgeText;
+  const statColor = display.status === 'none' ? colors.textPrimary : palette.metaText;
   const stored = Math.max(0, daysSince(item.dateAdded));
 
   return (
@@ -236,7 +238,7 @@ export default function ItemInfoScreen() {
           onPress={() => setRemoveOpen(true)}
           accessibilityRole="button"
         >
-          <Ionicons name="trash-outline" size={20} color={colors.danger} />
+          <Ionicons name="trash-outline" size={20} color={colors.dangerText} />
           <Text style={styles.removeLabel}>Remove</Text>
         </Pressable>
       </View>

@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
-import { radii, spacing } from './theme';
+import { radii, spacing, themedStyles } from './theme';
 
 // Colors that change per status (green / orange / red) are applied inline in
 // StatusBadge.tsx from statusColors, so this file only holds the shared shape.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -21,4 +21,4 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-});
+}));

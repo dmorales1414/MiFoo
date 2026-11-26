@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from '../theme';
+import { colors, radii, spacing, themedStyles } from '../theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   card: {
     flexDirection: 'row',
     gap: spacing.md,
@@ -13,4 +13,4 @@ export const styles = StyleSheet.create({
   text: { flex: 1, gap: 2 },
   title: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
   body: { fontSize: 13, lineHeight: 18, color: colors.textSecondary },
-});
+}));

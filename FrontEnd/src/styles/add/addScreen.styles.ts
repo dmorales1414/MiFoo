@@ -1,21 +1,21 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from '../theme';
+import { colors, radii, spacing, themedStyles } from '../theme';
 
 // Layout shared by all five add-item screens, plus the few cards that are specific to one.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { gap: spacing.xl, paddingBottom: spacing.xl },
   sectionPadding: { paddingHorizontal: spacing.xl },
   form: { paddingHorizontal: spacing.xl, gap: spacing.lg },
   footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, gap: spacing.xs },
   footnote: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginBottom: spacing.xs },
-  footnoteDanger: { color: colors.danger },
+  footnoteDanger: { color: colors.dangerText },
 
   // Confirm item: product card
   productCard: { borderRadius: radii.xl, backgroundColor: colors.field, padding: spacing.lg, gap: spacing.lg },
   productTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   matchedChip: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  matchedText: { fontSize: 12, fontWeight: '600', color: colors.primary },
+  matchedText: { fontSize: 12, fontWeight: '600', color: colors.primaryText },
   barcodeNumber: { fontSize: 11, color: colors.textSecondary },
   productImageWrap: {
     height: 170,
@@ -87,4 +87,4 @@ export const styles = StyleSheet.create({
   summaryLine: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   summaryMeta: { fontSize: 12, fontWeight: '600', color: colors.success },
   summaryMetaMuted: { fontSize: 12, color: colors.textSecondary },
-});
+}));

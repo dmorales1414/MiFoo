@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
@@ -49,7 +50,7 @@ export function ItemFilterSheet({ visible, filters, classifications, onChange, o
               }}
               accessibilityRole="button"
             >
-              <Ionicons name="trash-outline" size={22} color={colors.danger} />
+              <Ionicons name="trash-outline" size={22} color={colors.dangerText} />
               <View style={styles.actionText}>
                 <Text style={styles.actionTitle}>Select items to remove</Text>
                 <Text style={styles.actionSub}>Pick items, then choose how many of each</Text>
@@ -66,7 +67,7 @@ export function ItemFilterSheet({ visible, filters, classifications, onChange, o
                 value={filters.attentionOnly}
                 onValueChange={(attentionOnly) => onChange({ ...filters, attentionOnly })}
                 trackColor={{ true: colors.primary, false: colors.checkboxBorder }}
-                thumbColor="#FFFFFF"
+                thumbColor={colors.switchThumb}
                 accessibilityLabel="Only show items that need attention"
               />
             </View>

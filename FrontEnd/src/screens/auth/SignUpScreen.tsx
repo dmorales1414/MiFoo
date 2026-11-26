@@ -17,8 +17,10 @@ import {
 } from '../../features/auth/validation';
 import { styles } from '../../styles/auth/auth.styles';
 import { colors } from '../../styles/theme';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 export default function SignUpScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const { signUp } = useAuth();
   const insets = useSafeAreaInsets();
   const usernameRef = useRef<TextInput>(null);

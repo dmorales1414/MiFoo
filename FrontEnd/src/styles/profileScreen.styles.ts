@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from './theme';
+import { colors, radii, spacing, themedStyles } from './theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
   headerTitle: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
@@ -16,13 +16,16 @@ export const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cardTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
   editButton: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 4 },
-  editLabel: { fontSize: 14, fontWeight: '600', color: colors.primary },
+  editLabel: { fontSize: 14, fontWeight: '600', color: colors.primaryText },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowIcon: { width: 24, alignItems: 'center' },
   rowText: { flex: 1, gap: 1 },
   rowLabel: { fontSize: 12, color: colors.textSecondary },
   rowValue: { fontSize: 16, color: colors.textPrimary },
   rowEmpty: { fontSize: 16, color: colors.textPlaceholder },
+  swatchRow: { flexDirection: 'row', gap: spacing.sm },
+  swatch: { width: 30, height: 30, borderRadius: 8, borderWidth: 2, borderColor: colors.border },
+  swatchSelected: { borderColor: colors.primary },
   logout: {
     height: 56,
     borderRadius: radii.pill,
@@ -33,11 +36,11 @@ export const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   logoutLabel: { fontSize: 16, fontWeight: '700', color: colors.onDanger },
-  notice: { fontSize: 13, color: '#B45309', textAlign: 'center' },
+  notice: { fontSize: 13, color: colors.warningSoftText, textAlign: 'center' },
   // Edit sheet
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     padding: spacing.xxl,
@@ -45,4 +48,4 @@ export const styles = StyleSheet.create({
   },
   sheetTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
   sheetButtons: { gap: spacing.sm, marginTop: spacing.sm },
-});
+}));

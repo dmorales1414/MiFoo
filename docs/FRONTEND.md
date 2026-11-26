@@ -473,3 +473,21 @@ Removed files: `components/ItemSection.tsx`, `styles/itemSection.styles.ts`.
 - Item Info now opens instantly from the copy the list already has (`services/itemCache.ts`) and refreshes in the background. If the refresh fails it keeps the old details and shows an amber "tap to retry" bar instead of an error screen. With nothing cached it shows a spinner with "Loading item…".
 - Every read (GET) is retried up to 2 more times when the connection drops or the server answers 5xx (`services/api.ts`). Writes are never retried, so nothing can be added twice.
 - Backend: reads retry on dropped Supabase connections (`app/db/retry.py`), and a connection that stays down now answers **503** ("try again") instead of a bare 500. If you still see 500s, open Render -> your service -> **Logs**; the traceback right above the 500 line names the real cause.
+
+## 14. Dark mode, nav icons, tab animation and typed dates (added Nov 25)
+
+**Dark mode**
+- Profile -> **Display Settings** has two squares: white = Light, dark = Dark. The choice is remembered (`services/themeStorage.ts`, same phone storage as the login). The first launch is Light.
+- All colors live in `styles/theme.ts`: `lightColors` and `darkColors` (and `lightStatusColors` / `darkStatusColors` for the Urgent / Use soon / Safe cards). To change the dark look, edit only `darkColors`.
+- `colors.xxx` and `statusColors.xxx` always give the color of the mode that is active. Every `*.styles.ts` is wrapped in `themedStyles(() => StyleSheet.create({...}))`, which builds the styles once per mode. Write new styles the same way.
+- Every screen calls `useTheme()` (`features/theme/ThemeContext.tsx`) so it redraws when the mode changes. **Do this in any new screen.**
+- New color names: `surface` (sheets, pop-up menus, nav bar), `primaryText` (blue text and icons; `primary` is only for blue fills), `dangerText` (red text; `danger` is for red buttons), the `warningSoft` / `dangerSoft` banner colors, and per-status `rowBackground` and `metaText`.
+- Dark mode differs from the Figma frames in one way: sheets, inputs and cards are a step lighter than the page (instead of light gray with dark text), so every text color stays readable on every surface. Blue is `#3769E0` instead of `#4781FE` so white text on it passes the contrast check.
+
+**Navigation icons:** Home = house, Meals = plate with fork and knife, Pantry = basket, Profile = person in a circle (`TABS` in `components/BottomNavBar.tsx`).
+
+**Home animation:** Home was the only tab that slid in from the side when you tapped it (the other three had `animation: 'none'`). It is now `none` too (`app/_layout.tsx`). The carousel's shrink-and-fade of the side cards is part of the Figma design and was left alone.
+
+**Manual entry dates:** the expiration date is now a text box. Type digits and the slashes are added (`12312026` -> `12/31/2026`). The calendar button on the right opens the picker and fills the box. Impossible dates (`02/30/2026`) show a red message and count as "no date". If the date-picker native module is missing from the installed build, the calendar button is hidden and typing still works.
+
+**Fix (Nov 25, later): some colors did not change when switching Light / Dark.** Cause: React Compiler (on by default in new Expo projects, `"reactCompiler": true` under `experiments` in `app.json`) skips redrawing parts of a screen whose inputs did not change. The theme colors are read from outside the component, so the compiler did not see them change. Fix: every component file that uses theme colors starts with `'use no memo';`, which tells the compiler to leave that file alone. **Put the same first line in any new file that uses `styles` or `colors`.** (Alternative: set `reactCompiler` to `false` in `app.json`.)

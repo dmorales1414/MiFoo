@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing } from '../theme';
+import { colors, spacing, themedStyles } from '../theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -18,4 +18,4 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
-});
+}));

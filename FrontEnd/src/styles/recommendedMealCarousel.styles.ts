@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from './theme';
+import { colors, radii, spacing, themedStyles } from './theme';
 
 // Width and height of each card depend on the screen size, so they are computed
 // inside RecommendedMealCarousel.tsx and applied inline. Everything static is here.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   container: {
     alignItems: 'center',
     gap: spacing.md,
@@ -48,4 +48,4 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
   },
-});
+}));

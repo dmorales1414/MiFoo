@@ -10,8 +10,10 @@ import { PrimaryButton } from '../../components/Buttons';
 import { useAuth } from '../../features/auth/AuthContext';
 import { styles } from '../../styles/auth/auth.styles';
 import { colors } from '../../styles/theme';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 export default function LoginScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const { logIn } = useAuth();
   const insets = useSafeAreaInsets();
   const passwordRef = useRef<TextInput>(null);

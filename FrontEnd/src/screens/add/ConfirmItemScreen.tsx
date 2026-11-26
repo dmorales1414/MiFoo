@@ -11,10 +11,12 @@ import { StepIntro } from '../../components/add/StepIntro';
 import { useAddItem } from '../../features/addItem/AddItemContext';
 import { styles } from '../../styles/add/addScreen.styles';
 import { colors, spacing } from '../../styles/theme';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 // Step 1 of 3, second half (Figma: "Confirm item"). Shows what Open Food Facts found
 // so the user can check it is the right product.
 export default function ConfirmItemScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const { draft } = useAddItem();
   const [imageFailed, setImageFailed] = useState(false);
@@ -40,7 +42,7 @@ export default function ConfirmItemScreen() {
           <View style={styles.productCard}>
             <View style={styles.productTopRow}>
               <View style={styles.matchedChip}>
-                <Ionicons name="checkmark-circle-outline" size={16} color={colors.primary} />
+                <Ionicons name="checkmark-circle-outline" size={16} color={colors.primaryText} />
                 <Text style={styles.matchedText}>Barcode matched</Text>
               </View>
               <Text style={styles.barcodeNumber}>{product.barcode}</Text>

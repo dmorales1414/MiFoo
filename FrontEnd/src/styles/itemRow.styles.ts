@@ -1,13 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from './theme';
+import { colors, radii, spacing, themedStyles } from './theme';
 
 // The border color depends on the item's status, so ItemRow.tsx applies it inline.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.rowBackground,
     borderWidth: 2,
     borderRadius: radii.lg,
     paddingVertical: spacing.md,
@@ -70,4 +69,4 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textSecondary,
   },
-});
+}));

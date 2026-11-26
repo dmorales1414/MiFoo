@@ -10,9 +10,11 @@ import { saveRecipe } from '../../features/recipes/saveRecipe';
 import { useRecipeForm } from '../../features/recipes/useRecipeForm';
 import { styles } from '../../styles/recipes/recipeForm.styles';
 import { colors, spacing } from '../../styles/theme';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 // "Add a Meal" -> this screen. Title, ingredients and steps are required; the photo is optional.
 export default function CreateRecipeScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const form = useRecipeForm();
   const [busy, setBusy] = useState(false);

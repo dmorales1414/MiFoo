@@ -32,11 +32,13 @@ import { useReminderSync } from '../hooks/useReminderSync';
 import { styles } from '../styles/pantryScreen.styles';
 import { colors, layout, spacing } from '../styles/theme';
 import type { Item } from '../types/item';
+import { useTheme } from '../features/theme/ThemeContext';
 
 // The Pantry tab (Figma: "Pantry Screen"): everything you have stored, most urgent first.
 // Search by name or kind of food, filter by place, and use the blue settings button to
 // filter, sort, or select items to remove.
 export default function PantryScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const { items, loaded, usingSample, offlineReason, refresh, removeAmounts } = useItems();
   useReminderSync(items, loaded, usingSample);
@@ -108,7 +110,7 @@ export default function PantryScreen() {
 
   const empty = !loaded ? (
     <View style={styles.emptyBox}>
-      <ActivityIndicator color={colors.primary} />
+      <ActivityIndicator color={colors.primaryText} />
     </View>
   ) : items.length === 0 ? (
     <View style={styles.emptyBox}>
@@ -177,7 +179,7 @@ export default function PantryScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Pantry settings: filter, sort and remove items"
               >
-                <Ionicons name="options-outline" size={22} color={colors.primary} />
+                <Ionicons name="options-outline" size={22} color={colors.primaryText} />
                 {itemFiltersActive(filters) ? <View style={styles.settingsDot} /> : null}
               </Pressable>
             </View>

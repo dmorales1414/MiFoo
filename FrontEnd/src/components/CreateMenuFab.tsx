@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -34,7 +35,7 @@ export function CreateMenuFab({ bottomOffset }: { bottomOffset: number }) {
       accessibilityLabel={title}
     >
       <View style={styles.optionIcon}>
-        <Ionicons name={icon} size={20} color={colors.primary} />
+        <Ionicons name={icon} size={20} color={colors.primaryText} />
       </View>
       <View style={styles.optionText}>
         <Text style={styles.optionTitle}>{title}</Text>
@@ -75,12 +76,12 @@ export function CreateMenuFab({ bottomOffset }: { bottomOffset: number }) {
               >
                 <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
               </Pressable>
-              <Text style={styles.headerTitle}>Add an item</Text>
+              <Text style={styles.headerTitle}>Add an Item</Text>
               {closeButton}
             </View>
             <Text style={styles.intro}>Keep track of what's fresh.{'\n'}How would you like to add your item?</Text>
-            {option('scan-outline', 'Scan barcode', 'Find packaged food quickly', () => go('/add/scan-barcode'), true)}
-            {option('create-outline', 'Enter manually', 'Add any food or produce', () => go('/add/manual'))}
+            {option('scan-outline', 'Scan Barcode', 'Find packaged food quickly', () => go('/add/scan-barcode'), true)}
+            {option('create-outline', 'Enter Manually', 'Add any food or produce', () => go('/add/manual'))}
             <Text style={styles.footnote}>You can review everything before adding.</Text>
           </View>
         </View>

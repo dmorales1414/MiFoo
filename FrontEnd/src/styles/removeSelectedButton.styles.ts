@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, shadows, spacing } from './theme';
+import { colors, radii, shadows, spacing, themedStyles } from './theme';
 
 // "bottom" depends on the device's safe area, so RemoveSelectedButton.tsx sets it inline.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   button: {
     position: 'absolute',
     left: spacing.xl,
@@ -22,4 +22,4 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.onDanger,
   },
-});
+}));

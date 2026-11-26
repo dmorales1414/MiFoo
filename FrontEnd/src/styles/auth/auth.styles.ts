@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from '../theme';
+import { colors, radii, spacing, themedStyles } from '../theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   scroll: { flexGrow: 1, paddingHorizontal: spacing.xxl, justifyContent: 'center', gap: spacing.xl },
   logoWrap: { alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },
@@ -31,13 +31,13 @@ export const styles = StyleSheet.create({
   },
   inputError: { borderColor: colors.danger },
   inputText: { flex: 1, fontSize: 16, color: colors.textPrimary },
-  fieldError: { fontSize: 12, color: colors.danger },
+  fieldError: { fontSize: 12, color: colors.dangerText },
   hint: { fontSize: 12, color: colors.textSecondary },
-  banner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: '#FEE2E2' },
-  bannerText: { fontSize: 14, color: '#B91C1C' },
+  banner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: colors.dangerSoft },
+  bannerText: { fontSize: 14, color: colors.dangerSoftText },
   infoBanner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: colors.successSoft },
-  infoBannerText: { fontSize: 14, color: '#15803D' },
+  infoBannerText: { fontSize: 14, color: colors.successSoftText },
   switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
   switchText: { fontSize: 14, color: colors.textSecondary },
-  switchLink: { fontSize: 14, fontWeight: '700', color: colors.primary },
-});
+  switchLink: { fontSize: 14, fontWeight: '700', color: colors.primaryText },
+}));

@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from './theme';
+import { colors, radii, spacing, themedStyles } from './theme';
 
 // Look shared by the bottom sheets on the Pantry and Item Info screens
 // (same look as the Meals filter sheet).
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     padding: spacing.xxl,
@@ -76,5 +76,5 @@ export const styles = StyleSheet.create({
   },
   dangerLabel: { fontSize: 16, fontWeight: '700', color: colors.onDanger },
   cancel: { alignItems: 'center', paddingVertical: spacing.md },
-  cancelText: { fontSize: 15, fontWeight: '600', color: colors.primary },
-});
+  cancelText: { fontSize: 15, fontWeight: '600', color: colors.primaryText },
+}));

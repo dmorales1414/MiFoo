@@ -27,6 +27,7 @@ import {
 import { styles } from '../styles/profileScreen.styles';
 import { colors, layout, spacing } from '../styles/theme';
 import type { Me } from '../types/auth';
+import { useTheme } from '../features/theme/ThemeContext';
 
 function initialsOf(name: string | null, fallback: string | null): string {
   const source = (name || fallback || '?').trim();
@@ -56,6 +57,7 @@ function InfoRow({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap;
 }
 
 export default function ProfileScreen() {
+  const { mode, setMode } = useTheme(); // also redraws this screen when Light / Dark changes
   const { me, reloadMe, updateMe, logOut } = useAuth();
   const insets = useSafeAreaInsets();
   const navBottom = insets.bottom + layout.navBarBottomGap;
@@ -140,7 +142,7 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Edit profile"
               >
-                <Ionicons name="create-outline" size={18} color={colors.primary} />
+                <Ionicons name="create-outline" size={18} color={colors.primaryText} />
                 <Text style={styles.editLabel}>Edit</Text>
               </Pressable>
             ) : null}
@@ -148,6 +150,35 @@ export default function ProfileScreen() {
           <InfoRow icon="person-outline" label="Username" value={me?.username ?? null} />
           <InfoRow icon="mail-outline" label="Email" value={me?.email ?? null} />
           <InfoRow icon="call-outline" label="Phone" value={me?.phone ?? null} />
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Display Settings</Text>
+          <View style={styles.row}>
+            <View style={styles.rowIcon}>
+              <Ionicons name={mode === 'dark' ? 'moon-outline' : 'sunny-outline'} size={20} color={colors.textSecondary} />
+            </View>
+            <View style={styles.rowText}>
+              <Text style={styles.rowValue}>Theme Modes</Text>
+              <Text style={styles.rowLabel}>{mode === 'dark' ? 'Dark' : 'Light'}</Text>
+            </View>
+            <View style={styles.swatchRow} accessibilityRole="radiogroup">
+              <Pressable
+                onPress={() => setMode('light')}
+                style={[styles.swatch, { backgroundColor: colors.swatchLight }, mode === 'light' && styles.swatchSelected]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: mode === 'light' }}
+                accessibilityLabel="Light mode"
+              />
+              <Pressable
+                onPress={() => setMode('dark')}
+                style={[styles.swatch, { backgroundColor: colors.swatchDark }, mode === 'dark' && styles.swatchSelected]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: mode === 'dark' }}
+                accessibilityLabel="Dark mode"
+              />
+            </View>
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -165,12 +196,12 @@ export default function ProfileScreen() {
               onValueChange={togglePush}
               disabled={!me}
               trackColor={{ true: colors.primary, false: colors.checkboxBorder }}
-              thumbColor="#FFFFFF"
+              thumbColor={colors.switchThumb}
               accessibilityLabel="Push notifications"
             />
           </View>
           <Pressable onPress={testNotification} style={styles.editButton} accessibilityRole="button">
-            <Ionicons name="paper-plane-outline" size={18} color={colors.primary} />
+            <Ionicons name="paper-plane-outline" size={18} color={colors.primaryText} />
             <Text style={styles.editLabel}>Send a test notification</Text>
           </Pressable>
         </View>
@@ -271,7 +302,7 @@ function EditProfileSheet({ visible, me, onClose }: { visible: boolean; me: Me; 
               placeholder="(555) 123-4567"
               error={touched ? errors.phone : undefined}
             />
-            {error ? <Text style={{ color: colors.danger, fontSize: 14 }}>{error}</Text> : null}
+            {error ? <Text style={{ color: colors.dangerText, fontSize: 14 }}>{error}</Text> : null}
             <View style={styles.sheetButtons}>
               <PrimaryButton label="Save" onPress={save} loading={busy} />
               <TextLink label="Cancel" onPress={onClose} />

@@ -17,6 +17,7 @@ import { styles } from '../styles/homeScreen.styles';
 import { colors, layout, spacing } from '../styles/theme';
 import type { Item, Meal } from '../types/item';
 import { getItemDisplay } from '../utils/expiry';
+import { useTheme } from '../features/theme/ThemeContext';
 
 // How many items Home shows before pointing to the Pantry tab for the full list.
 const HOME_ITEM_LIMIT = 6;
@@ -24,6 +25,7 @@ const HOME_ITEM_LIMIT = 6;
 // The Home screen (Figma: "Home Screen v2"): recommended meals on top, then what needs to be
 // used first, filtered by where it is kept. The whole list lives in the Pantry tab.
 export default function HomeScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
 
   // Items come from the FastAPI backend (falls back to sample data if it is unreachable).
@@ -119,7 +121,7 @@ export default function HomeScreen() {
         <View style={styles.list}>
           {!loaded ? (
             <View style={styles.emptyBox}>
-              <ActivityIndicator color={colors.primary} />
+              <ActivityIndicator color={colors.primaryText} />
             </View>
           ) : shown.length === 0 ? (
             <View style={styles.emptyBox}>

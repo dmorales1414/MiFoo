@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
@@ -49,7 +50,7 @@ export function StepsEditor({ form }: { form: RecipeForm }) {
           accessibilityRole="button"
           accessibilityLabel="Add step"
         >
-          <Ionicons name="add" size={20} color={colors.primary} />
+          <Ionicons name="add" size={20} color={colors.primaryText} />
         </Pressable>
       </View>
     </View>

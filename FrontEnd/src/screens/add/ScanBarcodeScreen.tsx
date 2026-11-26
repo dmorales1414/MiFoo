@@ -15,10 +15,12 @@ import { ApiError, lookupBarcode } from '../../services/api';
 import { styles } from '../../styles/add/addScreen.styles';
 import { spacing } from '../../styles/theme';
 import { BARCODE_TYPES, isValidBarcode } from '../../utils/barcode';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 // Step 1 of 3 (Figma: "Scan barcode"). Reads a barcode with the camera, asks the backend
 // (which asks Open Food Facts) what the product is, then moves on to "Confirm item".
 export default function ScanBarcodeScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const insets = useSafeAreaInsets();
   const { startFromProduct } = useAddItem();
   const [permission, requestPermission] = useCameraPermissions();

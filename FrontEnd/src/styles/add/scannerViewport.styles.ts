@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from '../theme';
+import { colors, radii, spacing, themedStyles } from '../theme';
 
 const CORNER = 30;
 const CORNER_THICKNESS = 4;
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   frame: {
     height: 300,
     marginHorizontal: spacing.xl,
@@ -48,4 +48,4 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   torchOn: { backgroundColor: colors.primary },
-});
+}));

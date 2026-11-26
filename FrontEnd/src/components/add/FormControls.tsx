@@ -1,6 +1,7 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { Keyboard, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
 
 import {
   MAX_CLASSIFICATION_LENGTH,
@@ -11,9 +12,9 @@ import {
 import { CLASSIFICATION_SUGGESTIONS } from '../../features/items/classification';
 import { LOCATIONS } from '../../features/items/locations';
 import { styles } from '../../styles/add/formControls.styles';
-import { colors } from '../../styles/theme';
+import { colors, getThemeMode } from '../../styles/theme';
 import type { ItemLocation } from '../../types/item';
-import { formatLongDate, parseISODate, toISODate } from '../../utils/expiry';
+import { parseISODate, toISODate } from '../../utils/expiry';
 
 // ---- FormField: label (+ small tag such as "From barcode") + control + error -------------
 export function FormField({
@@ -68,6 +69,15 @@ export function TextField({
   );
 }
 
+// ---- DateField: type the date, or tap the calendar button to pick it --------------------
+// You can simply type digits ("12312026" turns into 12/31/2026; the slashes are added for you).
+// The calendar button on the right opens the system date picker when you would rather tap.
+//
+// The date picker is a native module. An app build made before it was added (for example an
+// emulator that still has an old development build) does not contain it, and importing it at the
+// top of this file crashed the whole add-item screen ("RNCDatePicker could not be found").
+// So it is loaded safely here, like the other native modules; when it is missing the calendar
+// button is simply hidden and typing still works.
 type DatePickerModule = typeof import('@react-native-community/datetimepicker');
 let datePicker: DatePickerModule | null = null;
 try {
@@ -75,30 +85,57 @@ try {
   const mod = require('@react-native-community/datetimepicker') as DatePickerModule;
   if (mod?.DateTimePickerAndroid) datePicker = mod;
 } catch {
-  datePicker = null; // not in this build: DateField uses the typed fallback below
+  datePicker = null; // not in this build: DateField is typing only
 }
 
-// "2026-12-05" is valid; "2026-13-45" and "tomorrow" are not.
-function isValidISODate(text: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(text) && toISODate(parseISODate(text)) === text;
+// '2026-12-31' -> '12/31/2026'
+function isoToTyped(iso: string | null): string {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return y && m && d ? `${m}/${d}/${y}` : '';
 }
 
-// ---- DateField: shows the date; tapping opens the system date picker ----------------------
+// Keeps only the digits and adds the slashes: '1231' -> '12/31', '12312026' -> '12/31/2026'.
+function formatTyped(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
+// '12/31/2026' -> '2026-12-31'. Returns null until the text is a real calendar date
+// ("02/30/2026" and "13/01/2026" are rejected). A pasted '2026-12-31' also works.
+function typedToISO(text: string): string | null {
+  const pasted = text.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(pasted)) {
+    return toISODate(parseISODate(pasted)) === pasted ? pasted : null;
+  }
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text);
+  if (!m) return null;
+  const [, mm, dd, yyyy] = m;
+  if (Number(yyyy) < 1900) return null;
+  const iso = `${yyyy}-${mm}-${dd}`;
+  return toISODate(parseISODate(iso)) === iso ? iso : null;
+}
+
 export function DateField({
   value,
   onChange,
   hasError,
 }: {
   value: string | null;
-  onChange: (iso: string) => void;
+  /** Called with the date as 'YYYY-MM-DD', or null while the typed text is not a full valid date. */
+  onChange: (iso: string | null) => void;
   hasError?: boolean;
 }) {
-  const [iosOpen, setIosOpen] = useState(false);
-  const [typed, setTyped] = useState(value ?? ''); // only used by the typed fallback
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [text, setText] = useState(isoToTyped(value));
 
-  // Keep the typed box in step when the date is set elsewhere (the date scanner, Update screen).
+  // Keep the box in step when the date is set somewhere else (the date scanner, the calendar,
+  // the Update screen). While you are typing a half-finished date, value is null and so is
+  // the parsed text, so nothing here overwrites what you are typing.
   useEffect(() => {
-    if (value && value !== typed) setTyped(value);
+    if (value !== typedToISO(text)) setText(isoToTyped(value));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
@@ -108,61 +145,78 @@ export function DateField({
   const minimumDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
   const maximumDate = new Date(now.getFullYear() + 15, now.getMonth(), now.getDate());
 
-  if (!datePicker) {
-    return (
-      <View style={[styles.input, hasError && styles.inputError]}>
-        <TextInput
-          style={styles.inputText}
-          value={typed}
-          onChangeText={(text) => {
-            setTyped(text);
-            if (isValidISODate(text)) onChange(text);
-          }}
-          placeholder="YYYY-MM-DD"
-          placeholderTextColor={colors.textPlaceholder}
-          keyboardType="numbers-and-punctuation"
-          maxLength={10}
-          accessibilityLabel="Expiration date, year-month-day"
-        />
-        <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
-      </View>
-    );
-  }
-  const { DateTimePickerAndroid, default: DateTimePicker } = datePicker;
+  const handleText = (raw: string) => {
+    const formatted = /^\d{4}-/.test(raw.trim()) ? raw.trim().slice(0, 10) : formatTyped(raw);
+    setText(formatted);
+    onChange(typedToISO(formatted));
+  };
 
-  const open = () => {
+  const toggleCalendar = () => {
+    if (!datePicker) return;
+    if (calendarOpen) {
+      setCalendarOpen(false);
+      return;
+    }
+    Keyboard.dismiss();
+    setCalendarOpen(true);
     if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
+      datePicker.DateTimePickerAndroid.open({
         value: current,
         mode: 'date',
         minimumDate,
         maximumDate,
         onChange: (event, date) => {
+          setCalendarOpen(false);
           if (event.type === 'set' && date) onChange(toISODate(date));
         },
       });
-    } else {
-      setIosOpen(true);
     }
   };
 
+  const complete = text.length === 10;
+  const invalid = complete && typedToISO(text) === null;
+  const DateTimePicker = datePicker?.default;
+
   return (
     <>
-      <Pressable style={[styles.input, hasError && styles.inputError]} onPress={open} accessibilityRole="button">
-        <Text style={[styles.inputText, !value && styles.placeholder]}>
-          {value ? formatLongDate(value) : 'Select a date'}
-        </Text>
-        <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
-      </Pressable>
+      <View style={[styles.input, (hasError || invalid) && styles.inputError]}>
+        <TextInput
+          style={styles.inputText}
+          value={text}
+          onChangeText={handleText}
+          placeholder="MM/DD/YYYY"
+          placeholderTextColor={colors.textPlaceholder}
+          keyboardType="number-pad"
+          maxLength={10}
+          returnKeyType="done"
+          accessibilityLabel="Expiration date, month day year"
+        />
+        {datePicker ? (
+          <Pressable
+            onPress={toggleCalendar}
+            style={[styles.calendarButton, calendarOpen && styles.calendarButtonOn]}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: calendarOpen }}
+            accessibilityLabel={calendarOpen ? 'Close calendar' : 'Open calendar'}
+            hitSlop={8}
+          >
+            <Ionicons name="calendar-outline" size={18} color={calendarOpen ? colors.onPrimary : colors.textSecondary} />
+          </Pressable>
+        ) : (
+          <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+        )}
+      </View>
+      {invalid ? <Text style={styles.error}>That is not a real date. Use month/day/year, like 12/31/2026.</Text> : null}
 
-      {Platform.OS === 'ios' && (
-        <Modal visible={iosOpen} transparent animationType="slide" onRequestClose={() => setIosOpen(false)}>
-          <Pressable style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay }} onPress={() => setIosOpen(false)}>
-            <Pressable style={{ backgroundColor: colors.background, padding: 16 }}>
+      {Platform.OS === 'ios' && DateTimePicker && (
+        <Modal visible={calendarOpen} transparent animationType="slide" onRequestClose={() => setCalendarOpen(false)}>
+          <Pressable style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay }} onPress={() => setCalendarOpen(false)}>
+            <Pressable style={{ backgroundColor: colors.surface, padding: 16 }}>
               <DateTimePicker
                 value={current}
                 mode="date"
                 display="inline"
+                themeVariant={getThemeMode()}
                 minimumDate={minimumDate}
                 maximumDate={maximumDate}
                 onChange={(_event, date) => {
@@ -200,7 +254,7 @@ export function QuantityStepper({ value, onChange }: { value: number; onChange: 
         accessibilityRole="button"
         accessibilityLabel="Increase quantity"
       >
-        <Ionicons name="add" size={20} color={colors.primary} />
+        <Ionicons name="add" size={20} color={colors.primaryText} />
       </Pressable>
     </View>
   );
@@ -226,7 +280,7 @@ export function LocationToggle({
             accessibilityRole="radio"
             accessibilityState={{ selected }}
           >
-            <Ionicons name={icon} size={16} color={selected ? colors.primary : colors.textSecondary} />
+            <Ionicons name={icon} size={16} color={selected ? colors.primaryText : colors.textSecondary} />
             <Text style={[styles.toggleLabel, selected && styles.toggleLabelSelected]}>{label}</Text>
           </Pressable>
         );

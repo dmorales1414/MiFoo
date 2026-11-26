@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, Switch, Text, View } from 'react-native';
 
@@ -36,7 +37,7 @@ export function MealFilterSheet({ visible, filters, onChange, onClose }: Props) 
         value={value}
         onValueChange={set}
         trackColor={{ true: colors.primary, false: colors.checkboxBorder }}
-        thumbColor="#FFFFFF"
+        thumbColor={colors.switchThumb}
         accessibilityLabel={title}
       />
     </View>

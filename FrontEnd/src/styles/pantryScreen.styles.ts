@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from './theme';
+import { colors, radii, spacing, themedStyles } from './theme';
 
 // Search row and empty states match the Meals screen so the two tabs feel the same.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.xl, gap: spacing.md },
   title: { fontSize: 32, fontWeight: '800', color: colors.textPrimary, marginTop: spacing.xl },
@@ -49,11 +49,11 @@ export const styles = StyleSheet.create({
     borderColor: colors.primaryBorder,
   },
   selectText: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.textPrimary },
-  selectCancel: { fontSize: 14, fontWeight: '700', color: colors.primary },
-  banner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: '#FEF3C7' },
-  bannerText: { fontSize: 13, color: '#92400E' },
+  selectCancel: { fontSize: 14, fontWeight: '700', color: colors.primaryText },
+  banner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: colors.warningSoft },
+  bannerText: { fontSize: 13, color: colors.warningSoftText },
   emptyBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl * 2 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
   emptyText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', paddingHorizontal: spacing.xl },
   count: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
-});
+}));

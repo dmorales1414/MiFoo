@@ -1,3 +1,4 @@
+'use no memo'; // see FRONTEND.md section 14: keeps Light / Dark changes from being skipped by React Compiler
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
@@ -24,7 +25,7 @@ export function ItemRow({ item, onPress, selectable = false, selected = false }:
   const palette = statusColors[status];
   const iconName = item.category === 'produce' ? 'leaf-outline' : 'restaurant-outline';
   // Red/amber/green text for items with a status; gray for fresh produce.
-  const metaColor = status === 'none' ? colors.textSecondary : palette.badgeText;
+  const metaColor = palette.metaText;
 
   return (
     <Pressable
@@ -32,7 +33,7 @@ export function ItemRow({ item, onPress, selectable = false, selected = false }:
       accessibilityRole={selectable ? 'checkbox' : 'button'}
       accessibilityState={selectable ? { checked: selected } : undefined}
       accessibilityLabel={`${item.itemName}, ${subtitle}, ${LOCATION_LABELS[item.location]}`}
-      style={[styles.row, { borderColor: palette.border }]}
+      style={[styles.row, { borderColor: palette.border, backgroundColor: palette.rowBackground }]}
     >
       {selectable ? (
         <View style={[styles.checkbox, selected ? styles.checkboxChecked : styles.checkboxUnchecked]}>

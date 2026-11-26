@@ -1,13 +1,13 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from '../theme';
+import { colors, radii, spacing, themedStyles } from '../theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   // FormField
   field: { gap: spacing.sm },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   label: { fontSize: 13, fontWeight: '700', color: colors.textPrimary },
   tag: { fontSize: 11, color: colors.textSecondary },
-  error: { fontSize: 12, color: colors.danger },
+  error: { fontSize: 12, color: colors.dangerText },
 
   // TextField / DateField (same look)
   input: {
@@ -22,6 +22,9 @@ export const styles = StyleSheet.create({
   inputError: { borderWidth: 1, borderColor: colors.danger },
   inputText: { flex: 1, fontSize: 15, color: colors.textPrimary, paddingVertical: spacing.md },
   placeholder: { color: colors.textPlaceholder },
+  // The calendar button inside the date box; filled blue while the calendar is open.
+  calendarButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  calendarButtonOn: { backgroundColor: colors.primary },
 
   // QuantityStepper
   stepper: {
@@ -65,7 +68,7 @@ export const styles = StyleSheet.create({
   },
   toggleOptionSelected: { backgroundColor: colors.background, borderColor: colors.primary },
   toggleLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
-  toggleLabelSelected: { color: colors.primary },
+  toggleLabelSelected: { color: colors.primaryText },
 
   // ClassificationField chips
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -79,5 +82,5 @@ export const styles = StyleSheet.create({
   },
   chipSelected: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
   chipLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
-  chipLabelSelected: { color: colors.primary },
-});
+  chipLabelSelected: { color: colors.primaryText },
+}));

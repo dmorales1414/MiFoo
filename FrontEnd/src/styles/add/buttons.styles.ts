@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from '../theme';
+import { colors, radii, spacing, themedStyles } from '../theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   primary: {
     height: 56,
     borderRadius: radii.pill,
@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
   primaryDisabled: { backgroundColor: colors.primaryDisabled },
   primaryLabel: { fontSize: 16, fontWeight: '700', color: colors.onPrimary },
   link: { alignItems: 'center', paddingVertical: spacing.sm },
-  linkLabel: { fontSize: 14, fontWeight: '600', color: colors.primary },
+  linkLabel: { fontSize: 14, fontWeight: '600', color: colors.primaryText },
   // Compact version used inside the camera area for "Allow camera".
   small: { height: 44, paddingHorizontal: spacing.xl },
-});
+}));

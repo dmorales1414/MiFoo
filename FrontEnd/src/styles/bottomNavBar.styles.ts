@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
-import { colors, layout, radii, shadows, spacing } from './theme';
+import { colors, layout, radii, shadows, spacing, themedStyles } from './theme';
 
 // "bottom" depends on the device's safe area, so BottomNavBar.tsx sets it inline.
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   bar: {
     position: 'absolute',
     left: spacing.xl,
@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
     color: colors.navInactive,
   },
   labelActive: {
-    color: colors.primary,
+    color: colors.primaryText,
     fontWeight: '700',
   },
-});
+}));

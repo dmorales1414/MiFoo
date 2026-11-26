@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors, radii, spacing } from './theme';
+import { colors, radii, spacing, themedStyles } from './theme';
 
-export const styles = StyleSheet.create({
+export const styles = themedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.xl, gap: spacing.xl },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -13,8 +13,8 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  staleBanner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: '#FEF3C7' },
-  staleText: { fontSize: 13, color: '#92400E' },
+  staleBanner: { padding: spacing.md, borderRadius: radii.md, backgroundColor: colors.warningSoft },
+  staleText: { fontSize: 13, color: colors.warningSoftText },
   titleBlock: { gap: spacing.xs },
   title: { fontSize: 30, fontWeight: '800', color: colors.textPrimary },
   stored: { fontSize: 15, color: colors.textSecondary },
@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
   // the three stats: Classified As | Expiring | Quantity
   stats: {
     flexDirection: 'row',
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderRadius: radii.md,
     paddingVertical: spacing.md,
     shadowColor: '#000000',
@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
   cookSub: { fontSize: 14, color: colors.textSecondary, marginTop: 2 },
   cookList: { gap: spacing.md },
   cookEmpty: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
-  cookEmptyLink: { fontSize: 14, fontWeight: '700', color: colors.primary, marginTop: spacing.xs },
+  cookEmptyLink: { fontSize: 14, fontWeight: '700', color: colors.primaryText, marginTop: spacing.xs },
 
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xxl },
   errorText: { fontSize: 15, color: colors.textSecondary, textAlign: 'center' },
@@ -75,5 +75,5 @@ export const styles = StyleSheet.create({
   updateButton: { backgroundColor: colors.primary },
   updateLabel: { fontSize: 16, fontWeight: '700', color: colors.onPrimary },
   removeButton: { backgroundColor: colors.background, borderWidth: 2, borderColor: colors.danger },
-  removeLabel: { fontSize: 16, fontWeight: '700', color: colors.danger },
-});
+  removeLabel: { fontSize: 16, fontWeight: '700', color: colors.dangerText },
+}));

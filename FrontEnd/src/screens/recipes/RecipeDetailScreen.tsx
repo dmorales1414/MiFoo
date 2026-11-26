@@ -25,6 +25,7 @@ import { styles as form } from '../../styles/recipes/recipeForm.styles';
 import { styles } from '../../styles/recipes/meals.styles';
 import { colors, spacing, statusColors } from '../../styles/theme';
 import type { Recipe, RecipeIngredient } from '../../types/recipe';
+import { useTheme } from '../../features/theme/ThemeContext';
 
 function ingredientText(i: RecipeIngredient): string {
   return `${formatQuantity(i.quantity)}${i.unit ? ` ${i.unit}` : ''} ${i.name}`;
@@ -33,6 +34,7 @@ function ingredientText(i: RecipeIngredient): string {
 // A saved meal. Plain text for reading while you cook; the pencil button at the top switches
 // to edit mode (the same form as Create recipe), and "I cooked this" updates your kitchen.
 export default function RecipeDetailScreen() {
+  useTheme(); // draw again when Light / Dark changes
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
@@ -81,7 +83,7 @@ export default function RecipeDetailScreen() {
       accessibilityRole="button"
       accessibilityLabel={editing ? 'Stop editing' : 'Edit meal'}
     >
-      <Ionicons name={editing ? 'eye-outline' : 'create-outline'} size={22} color={editing ? colors.primary : colors.textPrimary} />
+      <Ionicons name={editing ? 'eye-outline' : 'create-outline'} size={22} color={editing ? colors.primaryText : colors.textPrimary} />
     </Pressable>
   ) : null;
 
@@ -111,7 +113,7 @@ export default function RecipeDetailScreen() {
         </View>
       ) : (
         <View style={styles.emptyBox}>
-          <ActivityIndicator color={colors.primary} />
+          <ActivityIndicator color={colors.primaryText} />
         </View>
       ),
     );
