@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
 
 import {
@@ -69,6 +68,21 @@ export function TextField({
   );
 }
 
+type DatePickerModule = typeof import('@react-native-community/datetimepicker');
+let datePicker: DatePickerModule | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require('@react-native-community/datetimepicker') as DatePickerModule;
+  if (mod?.DateTimePickerAndroid) datePicker = mod;
+} catch {
+  datePicker = null; // not in this build: DateField uses the typed fallback below
+}
+
+// "2026-12-05" is valid; "2026-13-45" and "tomorrow" are not.
+function isValidISODate(text: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) && toISODate(parseISODate(text)) === text;
+}
+
 // ---- DateField: shows the date; tapping opens the system date picker ----------------------
 export function DateField({
   value,
@@ -80,12 +94,41 @@ export function DateField({
   hasError?: boolean;
 }) {
   const [iosOpen, setIosOpen] = useState(false);
+  const [typed, setTyped] = useState(value ?? ''); // only used by the typed fallback
+
+  // Keep the typed box in step when the date is set elsewhere (the date scanner, Update screen).
+  useEffect(() => {
+    if (value && value !== typed) setTyped(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
 
   const now = new Date();
   const current = value ? parseISODate(value) : now;
   // Same window the date scanner accepts: up to a year in the past, 15 years ahead.
   const minimumDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
   const maximumDate = new Date(now.getFullYear() + 15, now.getMonth(), now.getDate());
+
+  if (!datePicker) {
+    return (
+      <View style={[styles.input, hasError && styles.inputError]}>
+        <TextInput
+          style={styles.inputText}
+          value={typed}
+          onChangeText={(text) => {
+            setTyped(text);
+            if (isValidISODate(text)) onChange(text);
+          }}
+          placeholder="YYYY-MM-DD"
+          placeholderTextColor={colors.textPlaceholder}
+          keyboardType="numbers-and-punctuation"
+          maxLength={10}
+          accessibilityLabel="Expiration date, year-month-day"
+        />
+        <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+      </View>
+    );
+  }
+  const { DateTimePickerAndroid, default: DateTimePicker } = datePicker;
 
   const open = () => {
     if (Platform.OS === 'android') {

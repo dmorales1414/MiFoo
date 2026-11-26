@@ -104,7 +104,6 @@ export function RecommendedMealCarousel({
         >
           <Text style={styles.emptyCardText}>{emptyText}</Text>
         </Pressable>
-        <Text style={styles.label}>{label}</Text>
       </View>
     );
   }
